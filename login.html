@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álamo Analytics — Acesso</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23E8751A'/><text y='72' x='50' text-anchor='middle' font-size='52' font-weight='700' fill='white' font-family='Arial'>AL</text></svg>">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D2040;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.4)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.logo-mark{width:44px;height:44px;background:#E8751A;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;letter-spacing:-0.5px;flex-shrink:0}
+.logo-text{font-size:18px;font-weight:700;color:#0D2040;letter-spacing:.5px}
+.logo-sub{font-size:11px;color:#6b7a99;margin-top:2px}
+h1{font-size:22px;font-weight:700;color:#0D2040;margin-bottom:6px}
+.subtitle{font-size:13px;color:#6b7a99;margin-bottom:28px;line-height:1.5}
+label{display:block;font-size:12px;font-weight:600;color:#1a2340;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.input-wrap{position:relative;margin-bottom:20px}
+input[type=password]{width:100%;padding:12px 44px 12px 14px;border:1.5px solid #e2e6ef;border-radius:10px;font-size:14px;color:#1a2340;background:#f8fafc;transition:border-color .15s;outline:none;font-family:inherit}
+input[type=password]:focus{border-color:#E8751A;background:#fff}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;padding:4px;display:flex;align-items:center}
+.eye-btn:hover{color:#E8751A}
+.btn{width:100%;padding:13px;background:#E8751A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.2px}
+.btn:hover{opacity:.88}
+.btn:active{opacity:.75}
+.btn:disabled{opacity:.5;cursor:default}
+.erro{display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;color:#991b1b;margin-bottom:18px;align-items:center;gap:8px}
+.erro.show{display:flex}
+.footer{margin-top:28px;text-align:center;font-size:11px;color:#9ca3af}
+.lock-icon{width:48px;height:48px;background:#fff8f3;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;border:2px solid #fde0c8}
+.lock-icon svg{width:22px;height:22px;stroke:#E8751A;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-mark">AL</div>
+    <div>
+      <div class="logo-text">ÁLAMO ANALYTICS</div>
+      <div class="logo-sub">Inteligência de Receita · Santos, SP</div>
+    </div>
+  </div>
+
+  <div class="lock-icon">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </svg>
+  </div>
+
+  <h1>Área restrita</h1>
+  <p class="subtitle">Digite a senha da equipe para acessar o dashboard.</p>
+
+  <div class="erro" id="erro" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Senha incorreta. Tente novamente.
+  </div>
+
+  <form id="form" action="/api/auth" method="POST">
+    <label for="senha">Senha</label>
+    <div class="input-wrap">
+      <input type="password" id="senha" name="password" placeholder="••••••••••" autocomplete="current-password" required autofocus>
+      <button type="button" class="eye-btn" onclick="toggleSenha()" aria-label="Mostrar ou ocultar senha">
+        <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <button type="submit" class="btn" id="btn">Entrar no Dashboard</button>
+  </form>
+
+  <div class="footer">Acesso exclusivo para a equipe Álamo Logística</div>
+</div>
+
+<script>
+// Mostrar erro se URL contém ?erro=1
+if(location.search.includes('erro=1')){
+  document.getElementById('erro').classList.add('show');
+}
+
+function toggleSenha(){
+  const inp=document.getElementById('senha');
+  const icon=document.getElementById('eye-icon');
+  if(inp.type==='password'){
+    inp.type='text';
+    icon.innerHTML='<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  }else{
+    inp.type='password';
+    icon.innerHTML='<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+
+document.getElementById('form').addEventListener('submit',function(){
+  const btn=document.getElementById('btn');
+  btn.disabled=true;
+  btn.textContent='Verificando...';
+});
+</script>
+</body>
+</html>
