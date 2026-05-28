@@ -337,7 +337,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 // ============================================================
 // FONTE DE DADOS — Google Sheets (atualizado diariamente)
 // ============================================================
-const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTmauedPdcFkHXieVEt4-pNlWlTfdGDq9R0ikYu2KpPXTFotEVE7Pau1UXnWOnBQA/pub?gid=817431800&single=true&output=csv';
+const SHEET_CSV_URL='/api/sheets'; // Proxy Vercel → Google Sheets (evita CORS)
 
 // ============================================================
 // DADOS DINÂMICOS (preenchidos via loadData)
