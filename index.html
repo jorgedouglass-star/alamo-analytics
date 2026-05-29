@@ -143,6 +143,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .loading-pulse span:nth-child(3){animation-delay:.3s}
 @keyframes lp{0%,100%{opacity:.25}50%{opacity:1}}
 @media(max-width:768px){.hdr{padding:0 16px}.sec,.filter-bar,.filter-summary{padding-left:16px;padding-right:16px}.tabs{padding:0 12px}.kval{font-size:18px}}
+
+/* PRAZOS */
+.pz-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pz-green{background:#dcfce7;color:#15803d}
+.pz-yellow{background:#fef9c3;color:#854d0e}
+.pz-orange{background:#ffedd5;color:#9a3412}
+.pz-red{background:#fee2e2;color:#991b1b}
+.pz-up{background:#fee2e2;color:#991b1b}
+.pz-dn{background:#dcfce7;color:#15803d}
+.pz-neutral{background:var(--sec);color:var(--txt2)}
+.pz-tbl-wrap{max-height:360px;overflow-y:auto}
+.pz-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.pz-tbl th{font-size:10px;font-weight:600;color:var(--txt2);text-align:left;padding:7px 8px;border-bottom:1px solid var(--bdr);white-space:nowrap;position:sticky;top:0;background:var(--card);z-index:2;text-transform:uppercase;letter-spacing:.4px}
+.pz-tbl td{padding:7px 8px;border-bottom:1px solid var(--bdr);color:var(--txt);vertical-align:middle}
+.pz-tbl tr:last-child td{border-bottom:none}
+.pz-tbl tr:hover td{background:#fff8f3;cursor:pointer}
+.pz-tbl tr.pz-sel td{background:#fff3e8}
+.pz-var-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:11px}
+.pz-var-row:last-child{border-bottom:none}
+.pz-var-bar-wrap{flex:1;height:5px;background:var(--sec);border-radius:3px;overflow:hidden}
+.pz-var-bar{height:100%;border-radius:3px}
+.pz-chip{font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid var(--bdr);background:var(--sec);color:var(--txt2);display:inline-block;margin:2px}
+.pz-detail{background:var(--sec);border-radius:10px;padding:12px 14px;margin-top:10px}
+.pz-detail-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:11px}
+.pz-detail-row:last-child{border-bottom:none}
+.pz-tab-row{display:flex;gap:6px;margin-bottom:14px}
+.pz-tab{padding:5px 14px;font-size:11px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s}
+.pz-tab.on{background:var(--or);border-color:var(--or);color:#fff}
 </style>
 </head>
 <body>
@@ -227,6 +255,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="tb" data-tab="clientes" onclick="switchTab('clientes')" role="tab"><i class="ti ti-users"></i> Clientes</button>
   <button class="tb" data-tab="produtos" onclick="switchTab('produtos')" role="tab"><i class="ti ti-package"></i> Produtos</button>
   <button class="tb" data-tab="ia" onclick="switchTab('ia')" role="tab"><i class="ti ti-brain"></i> IA + Chat</button>
+  <button class="tb" data-tab="prazos" onclick="switchTab('prazos')" role="tab"><i class="ti ti-clock-dollar"></i> Prazos</button>
   <button class="tb" data-tab="operacional" onclick="switchTab('operacional')" role="tab"><i class="ti ti-users-group"></i> Operacional</button>
 </nav>
 
@@ -309,10 +338,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="sug" onclick="sendSug(this)">Análise da equipe de faturamento</button>
         <button class="sug" onclick="sendSug(this)">A concentração de receita é saudável?</button>
         <button class="sug" onclick="sendSug(this)">Quais meses são historicamente mais fortes?</button>
+        <button class="sug" onclick="sendSug(this)">Quais clientes estão aumentando meu prazo?</button>
+        <button class="sug" onclick="sendSug(this)">Estou concedendo muito prazo comparado ao histórico?</button>
       </div>
       <div class="chat-inp">
         <input type="text" id="chat-input" placeholder="Pergunte sobre receita, clientes, tendências, equipe..." onkeydown="if(event.key==='Enter')sendMsg()">
         <button class="send-btn" id="send-btn" onclick="sendMsg()"><i class="ti ti-send"></i> Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRAZOS -->
+<div id="sec-prazos" class="sec">
+  <div class="kgrid" id="pz-kpis"></div>
+  <div class="two">
+    <div class="cc">
+      <div class="ctitle">Evolução do prazo médio <span class="ctag" id="pz-trend-tag"></span></div>
+      <div style="position:relative;width:100%;height:200px"><canvas id="c-pz-trend" role="img" aria-label="Evolução do prazo médio mensal"></canvas></div>
+      <div id="pz-trend-lgnd" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:var(--txt2)"></div>
+    </div>
+    <div class="cc">
+      <div class="ctitle">Variação 2025 → 2026 <span class="ctag">por cliente</span></div>
+      <div id="pz-variacao" style="max-height:238px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <div class="cc">
+    <div class="ctitle">
+      Análise por cliente
+      <div class="pz-tab-row" style="margin-bottom:0">
+        <button class="pz-tab on" onclick="pzSetTab('ranking')">Ranking</button>
+        <button class="pz-tab" onclick="pzSetTab('faixas')">Por faixa</button>
+      </div>
+    </div>
+    <div id="pz-tab-ranking">
+      <div class="pz-tbl-wrap">
+        <table class="pz-tbl" aria-label="Ranking de prazos por cliente">
+          <thead><tr>
+            <th>#</th><th>Cliente</th><th>Empresa</th>
+            <th>Prazo médio</th><th>Mín/Máx</th>
+            <th>Δ vs 2025</th><th>Faturas</th><th>Volume</th>
+          </tr></thead>
+          <tbody id="pz-tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="pz-tab-faixas" style="display:none">
+      <div id="pz-faixas"></div>
+    </div>
+  </div>
+  <div class="cc" id="pz-detail-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <span style="font-size:14px;font-weight:700;color:var(--txt)" id="pz-d-nome"></span>
+        <span class="pz-chip" style="margin-left:6px" id="pz-d-emp"></span>
+      </div>
+      <button onclick="pzCloseDetail()" style="font-size:11px;padding:4px 10px;border:1px solid var(--bdr);border-radius:8px;background:transparent;cursor:pointer;color:var(--txt2)"><i class="ti ti-x"></i> Fechar</button>
+    </div>
+    <div class="two">
+      <div class="pz-detail">
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Prazo médio</span><span style="font-weight:700" id="pz-d-medio"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Mínimo / Máximo</span><span id="pz-d-minmax"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Prazo em 2025</span><span id="pz-d-2025"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Prazo em 2026</span><span id="pz-d-2026"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Variação</span><span id="pz-d-delta"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Total faturas</span><span id="pz-d-qtd"></span></div>
+        <div class="pz-detail-row"><span style="color:var(--txt2)">Volume total</span><span id="pz-d-valor"></span></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Prazo por mês</div>
+        <div style="position:relative;height:160px"><canvas id="c-pz-detail" role="img" aria-label="Histórico de prazo do cliente selecionado"></canvas></div>
       </div>
     </div>
   </div>
@@ -351,6 +446,7 @@ let M={total:[],ARM:[],LOG:[],emp:{}};
 let CLIENTS=[];
 let PRODS=[];
 let EMPDATA=[];
+let PRAZO_DATA={rows:[],clientes:[],mensal:[],mensal_emp:{},variacao:[]};
 const EMP_COLORS=['#E8751A','#1A4FA0','#0F9E75','#7C3AED','#D97706'];
 const PROD_COLORS=['#E8751A','#1A4FA0','#0F9E75','#7C3AED','#D97706','#DC2626','#0891B2','#059669','#6366f1','#6B7280'];
 const MES_NAMES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -495,6 +591,7 @@ function applyFilters(){
   else if(t==='clientes')renderClientes();
   else if(t==='produtos')renderProdutos();
   else if(t==='operacional')renderOperacional();
+  else if(t==='prazos')renderPrazos();
   else if(t==='ia')renderIA();
 }
 function destroyAll(){Object.values(CH).forEach(c=>{try{c.destroy()}catch(e){}});CH={};}
@@ -686,6 +783,13 @@ function buildContext(){
   const armTot=ST.empresas.includes('ARM')?sum(getSelectedIndices().map(i=>M.ARM[i]||0)):0;
   const logTot=ST.empresas.includes('LOG')?sum(getSelectedIndices().map(i=>M.LOG[i]||0)):0;
   const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
+  // Prazo data para IA
+  const pzClientes=PRAZO_DATA.clientes||[];
+  const pzTotQ=pzClientes.reduce((s,c)=>s+c.qtd,0);
+  const pzMedGeral=pzTotQ?Math.round(pzClientes.reduce((s,c)=>s+c.med*c.qtd,0)/pzTotQ*10)/10:0;
+  const pzMaiorPrazo=pzClientes.length?pzClientes.reduce((m,c)=>c.max>m.max?c:m,pzClientes[0]):{};
+  const pzSubindo=PRAZO_DATA.variacao.filter(v=>v.delta>2).slice(0,5);
+  const pzCaindo=PRAZO_DATA.variacao.filter(v=>v.delta<-2).slice(0,3);
   return`ÁLAMO LOGÍSTICA — SANTOS/SP
 Período: ${mths[0]||'—'} a ${mths[mths.length-1]||'—'} (${n} meses)
 Empresa: ${ST.empresas.join('+')} | Colaborador: ${ST.colab==='all'?'Todos':ST.colab}
@@ -697,7 +801,14 @@ ${filtC.slice(0,5).map((c,i)=>`${i+1}. ${c.n}: ${fmt(c.r)} | ${c.l} lanç. | tic
 TOP SERVIÇOS:
 ${PRODS.slice(0,5).map((p,i)=>`${i+1}. ${p.n}: ${fmt(p.r)} (${p.p}%)`).join('\n')}
 EQUIPE:
-${EMPDATA.map(e=>`${e.full}: ${fmtM(e.r)} | ${e.l} lanç. | ticket ${fmt(e.t)} | ${e.p}%`).join('\n')}`;
+${EMPDATA.map(e=>`${e.full}: ${fmtM(e.r)} | ${e.l} lanç. | ticket ${fmt(e.t)} | ${e.p}%`).join('\n')}
+PRAZOS CONCEDIDOS:
+Prazo médio geral: ${pzMedGeral} dias
+Maior prazo ativo: ${pzMaiorPrazo.max||'—'} dias (${pzMaiorPrazo.cliente||'—'})
+ARM 262 prazo médio: ${Math.round((PRAZO_DATA.mensal_emp?.ARM?Object.values(PRAZO_DATA.mensal_emp.ARM).reduce((a,b)=>a+b,0)/Object.values(PRAZO_DATA.mensal_emp.ARM).length:0)*10)/10} dias | LOG Santos: ${Math.round((PRAZO_DATA.mensal_emp?.LOG?Object.values(PRAZO_DATA.mensal_emp.LOG).reduce((a,b)=>a+b,0)/Object.values(PRAZO_DATA.mensal_emp.LOG).length:0)*10)/10} dias
+Clientes aumentando prazo (2025→2026): ${pzSubindo.map(v=>`${v.cliente} (+${v.delta.toFixed(1)}d)`).join(', ')||'nenhum'}
+Clientes reduzindo prazo: ${pzCaindo.map(v=>`${v.cliente} (${v.delta.toFixed(1)}d)`).join(', ')||'nenhum'}
+Top clientes por prazo alto: ${pzClientes.filter(c=>c.max>60).slice(0,5).map(c=>`${c.cliente}: ${c.med.toFixed(1)}d médio`).join(', ')||'nenhum'}`;
 }
 
 async function callAI(messages,systemPrompt,maxTokens=1000){
@@ -717,7 +828,8 @@ async function generateInsights(){
 ${buildContext()}
 Formato — array JSON puro:
 [{"tipo":"alerta","titulo":"...","o_que":"fato com número","e_dai":"impacto financeiro","e_agora":"ação com prazo"},{"tipo":"oportunidade","titulo":"...","o_que":"...","e_dai":"...","e_agora":"..."},{"tipo":"positivo","titulo":"...","o_que":"...","e_dai":"...","e_agora":"..."}]
-Valores de tipo: alerta | oportunidade | positivo`;
+Valores de tipo: alerta | oportunidade | positivo
+Considere também os dados de prazos concedidos — se algum cliente está aumentando muito o prazo concedido ou se o prazo médio geral está subindo, isso é relevante para fluxo de caixa.`;
   try{
     const txt=await callAI([{role:'user',content:user}],sys,1200);
     const clean=txt.replace(/```json?|```/g,'').trim();
@@ -892,6 +1004,312 @@ function buildAggregates(raw){
   initYearFilter(years);
   initMonthFilter();
   initColabFilter();
+  // Prazos — precisa da coluna DATA VCTO (carregada junto no loadData)
+  buildPrazoData(raw);
+}
+
+// ============================================================
+// PRAZOS — Construção de dados
+// ============================================================
+function buildPrazoData(raw){
+  const rows=[];
+  raw.forEach(r=>{
+    if(!r.vctoRaw||!r.cliente)return;
+    const vcto=parseDate(r.vctoRaw);
+    if(!vcto)return;
+    const emissao=new Date(r.year,r.month-1,1);
+    const vctoDate=new Date(vcto.year,vcto.month-1,1);
+    // prazo em dias: usa o valor bruto se disponível, senão approx por mês
+    let prazo=0;
+    // Tenta calcular em dias corridos a partir das strings originais
+    const dtE=parseDateFull(r.vctoRaw);
+    const dtEm=parseDateFull_emissao(r);
+    if(dtE&&dtEm){prazo=Math.round((dtE-dtEm)/(1000*86400));}
+    else{prazo=(vcto.year-r.year)*12+(vcto.month-r.month);}
+    if(prazo<0||prazo>400)return;
+    const anoMes=r.year+'-'+String(r.month).padStart(2,'0');
+    rows.push({
+      cliente:r.cliente,empresa:r.empresa,produto:r.produto,
+      prazo,valor:r.valor,anoMes,ano:r.year
+    });
+  });
+
+  // Mensal global (média ponderada)
+  const mMap={};
+  rows.forEach(r=>{
+    if(!mMap[r.anoMes])mMap[r.anoMes]={sum:0,cnt:0};
+    mMap[r.anoMes].sum+=r.prazo;mMap[r.anoMes].cnt++;
+  });
+  const mensal=Object.entries(mMap).sort().map(([k,v])=>({
+    anoMes:k,prazo:Math.round(v.sum/v.cnt*10)/10,cnt:v.cnt
+  }));
+
+  // Mensal por empresa
+  const meMap={};
+  rows.forEach(r=>{
+    const emp=isARM(r.empresa)?'ARM':'LOG';
+    const k=emp+'|'+r.anoMes;
+    if(!meMap[k])meMap[k]={emp,anoMes:r.anoMes,sum:0,cnt:0};
+    meMap[k].sum+=r.prazo;meMap[k].cnt++;
+  });
+  const mensal_emp={};
+  Object.values(meMap).forEach(v=>{
+    if(!mensal_emp[v.emp])mensal_emp[v.emp]={};
+    mensal_emp[v.emp][v.anoMes]=Math.round(v.sum/v.cnt*10)/10;
+  });
+
+  // Por cliente
+  const cMap={};
+  rows.forEach(r=>{
+    if(!cMap[r.cliente])cMap[r.cliente]={cliente:r.cliente,empresa:r.empresa,sum:0,cnt:0,min:999,max:0,valor:0,rows25:[],rows26:[]};
+    const c=cMap[r.cliente];
+    c.sum+=r.prazo;c.cnt++;
+    if(r.prazo<c.min)c.min=r.prazo;
+    if(r.prazo>c.max)c.max=r.prazo;
+    c.valor+=r.valor;
+    if(r.ano===2025)c.rows25.push(r.prazo);
+    if(r.ano===2026)c.rows26.push(r.prazo);
+  });
+  const clientes=Object.values(cMap).map(c=>{
+    const med=c.cnt?Math.round(c.sum/c.cnt*10)/10:0;
+    const p25=c.rows25.length?Math.round(c.rows25.reduce((a,b)=>a+b,0)/c.rows25.length*10)/10:null;
+    const p26=c.rows26.length?Math.round(c.rows26.reduce((a,b)=>a+b,0)/c.rows26.length*10)/10:null;
+    const delta=p25&&p26?Math.round((p26-p25)*10)/10:null;
+    const deltaPct=p25&&delta?Math.round(delta/p25*1000)/10:null;
+    return{cliente:c.cliente,empresa:c.empresa,med,min:c.min===999?0:c.min,max:c.max,qtd:c.cnt,valor:Math.round(c.valor),p25,p26,delta,deltaPct};
+  }).sort((a,b)=>b.valor-a.valor);
+
+  // Variação ordenada por delta
+  const variacao=clientes.filter(c=>c.delta!==null).sort((a,b)=>b.delta-a.delta);
+
+  // Mensal por cliente (para detalhe)
+  const cmMap={};
+  rows.forEach(r=>{
+    const k=r.cliente+'|'+r.anoMes;
+    if(!cmMap[k])cmMap[k]={cliente:r.cliente,anoMes:r.anoMes,sum:0,cnt:0};
+    cmMap[k].sum+=r.prazo;cmMap[k].cnt++;
+  });
+  const clienteMensal={};
+  Object.values(cmMap).forEach(v=>{
+    if(!clienteMensal[v.cliente])clienteMensal[v.cliente]={};
+    clienteMensal[v.cliente][v.anoMes]=Math.round(v.sum/v.cnt*10)/10;
+  });
+
+  PRAZO_DATA={rows,clientes,mensal,mensal_emp,variacao,clienteMensal};
+}
+
+function parseDateFull(s){
+  if(!s)return null;
+  s=s.toString().trim();
+  const br=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(br){let y=parseInt(br[3]);if(y<100)y+=2000;return new Date(y,parseInt(br[2])-1,parseInt(br[1]));}
+  const iso=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(iso)return new Date(parseInt(iso[1]),parseInt(iso[2])-1,parseInt(iso[3]));
+  const serial=parseFloat(s);
+  if(!isNaN(serial)&&serial>40000)return new Date(Math.round((serial-25569)*86400*1000));
+  return null;
+}
+function parseDateFull_emissao(r){return new Date(r.year,r.month-1,15);}
+
+// ============================================================
+// PRAZOS — Render
+// ============================================================
+let PZ_TAB='ranking';
+let PZ_SEL=null;
+let CH_PZ_TREND=null,CH_PZ_DETAIL=null;
+
+function pzGetFilteredClientes(){
+  let data=PRAZO_DATA.clientes||[];
+  if(ST.empresas.length<2){
+    data=data.filter(c=>ST.empresas.includes('ARM')?isARM(c.empresa):!isARM(c.empresa));
+  }
+  if(ST.colab!=='all'){
+    // filtro de colaborador não se aplica diretamente a prazos mas mantemos consistência
+  }
+  return data;
+}
+
+function pzGetFilteredMensal(){
+  const idxs=getSelectedIndices();
+  const meses=idxs.map(i=>MONTHS_META[i]).filter(Boolean);
+  const keys=new Set(meses.map(m=>m.year+'-'+String(m.month).padStart(2,'0')));
+  if(ST.empresas.length<2){
+    const emp=ST.empresas.includes('ARM')?'ARM':'LOG';
+    const src=PRAZO_DATA.mensal_emp[emp]||{};
+    return (PRAZO_DATA.mensal||[]).filter(m=>keys.has(m.anoMes)).map(m=>({...m,prazo:src[m.anoMes]||m.prazo}));
+  }
+  return (PRAZO_DATA.mensal||[]).filter(m=>keys.has(m.anoMes));
+}
+
+function renderPrazos(){
+  if(!PRAZO_DATA.clientes||!PRAZO_DATA.clientes.length){
+    document.getElementById('pz-kpis').innerHTML='<div style="font-size:12px;color:var(--txt2);padding:8px">Dados de prazo não disponíveis — verifique se a coluna DATA VCTO está na planilha.</div>';
+    return;
+  }
+  pzRenderKPIs();
+  pzRenderTrend();
+  pzRenderVariacao();
+  if(PZ_TAB==='ranking')pzRenderRanking();
+  else pzRenderFaixas();
+  if(PZ_SEL)pzShowDetail(PZ_SEL,false);
+}
+
+function pzRenderKPIs(){
+  const clientes=pzGetFilteredClientes();
+  const mensal=pzGetFilteredMensal();
+  if(!clientes.length)return;
+  const totQ=clientes.reduce((s,c)=>s+c.qtd,0);
+  const prazoMed=totQ?clientes.reduce((s,c)=>s+c.med*c.qtd,0)/totQ:0;
+  const maxC=clientes.reduce((m,c)=>c.max>m.max?c:m,clientes[0]);
+  const tEnd=mensal.length?mensal[mensal.length-1].prazo:prazoMed;
+  const tStart=mensal.length?mensal[0].prazo:prazoMed;
+  const tDelta=tEnd-tStart;
+  const rising=clientes.filter(c=>c.delta!==null&&c.delta>2).length;
+  document.getElementById('pz-kpis').innerHTML=[
+    {l:'Prazo médio concedido',v:prazoMed.toFixed(1)+'d',s:'ponderado por faturas',c:'nt'},
+    {l:'Maior prazo ativo',v:maxC.max+'d',s:maxC.cliente.split(' ')[0],c:'dn'},
+    {l:'Tendência do período',v:(tDelta>=0?'+':'')+tDelta.toFixed(1)+'d',s:tDelta>0?'⬆ prazos crescendo':'⬇ prazos reduzindo',c:tDelta>2?'dn':tDelta<-2?'up':'nt'},
+    {l:'Clientes c/ prazo subindo',v:rising,s:'aumento >2d vs 2025',c:rising>3?'dn':'nt'}
+  ].map(k=>`<div class="kcard"><div class="klabel">${k.l}</div><div class="kval">${k.v}</div><div class="ksub ${k.c}">${k.s}</div></div>`).join('');
+}
+
+function pzRenderTrend(){
+  const mensal=pzGetFilteredMensal();
+  if(!mensal.length)return;
+  document.getElementById('pz-trend-tag').textContent=mensal[0].anoMes+' → '+mensal[mensal.length-1].anoMes;
+  const labels=mensal.map(m=>{const p=m.anoMes.split('-');return MES_NAMES[parseInt(p[1])-1]+'/'+p[0].slice(2);});
+  const vals=mensal.map(m=>m.prazo);
+  const ctx=document.getElementById('c-pz-trend').getContext('2d');
+  if(CH_PZ_TREND){CH_PZ_TREND.destroy();CH_PZ_TREND=null;}
+
+  // Se filtrado por empresa, mostra ambas as séries
+  const showBoth=ST.empresas.length===2&&Object.keys(PRAZO_DATA.mensal_emp).length>=2;
+  const datasets=[];
+  if(showBoth){
+    const mKeys=new Set(mensal.map(m=>m.anoMes));
+    const arm=PRAZO_DATA.mensal_emp['ARM']||{};const log=PRAZO_DATA.mensal_emp['LOG']||{};
+    datasets.push({label:'ARM 262',data:mensal.map(m=>arm[m.anoMes]||null),borderColor:'#E8751A',backgroundColor:'rgba(232,117,26,0.08)',fill:false,tension:0.3,pointRadius:3,borderWidth:2});
+    datasets.push({label:'LOG Santos',data:mensal.map(m=>log[m.anoMes]||null),borderColor:'#1A4FA0',backgroundColor:'rgba(26,79,160,0.06)',fill:false,tension:0.3,pointRadius:3,borderWidth:2,borderDash:[4,4]});
+  }else{
+    datasets.push({label:'Prazo médio (dias)',data:vals,borderColor:'#E8751A',backgroundColor:'rgba(232,117,26,0.08)',fill:true,tension:0.3,pointRadius:3,borderWidth:2.5});
+  }
+  CH_PZ_TREND=new Chart(ctx,{
+    type:'line',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.dataset.label}: ${v.raw}d`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9ca3af',maxRotation:45,autoSkip:false}},
+              y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#9ca3af',callback:v=>v+'d'}}}}
+  });
+  CH[`pz-trend`]=CH_PZ_TREND;
+  const lgnd=showBoth
+    ?`<span style="display:flex;align-items:center;gap:4px"><span class="sw" style="background:#E8751A"></span>ARM 262</span><span style="display:flex;align-items:center;gap:4px"><span class="sw" style="background:#1A4FA0"></span>LOG Santos</span>`
+    :`<span style="display:flex;align-items:center;gap:4px"><span class="sw" style="background:#E8751A"></span>Prazo médio mensal</span>`;
+  document.getElementById('pz-trend-lgnd').innerHTML=lgnd;
+}
+
+function pzRenderVariacao(){
+  const sorted=[...PRAZO_DATA.variacao].sort((a,b)=>b.delta-a.delta).slice(0,16);
+  if(!sorted.length){document.getElementById('pz-variacao').innerHTML='<div style="font-size:11px;color:var(--txt2);padding:8px">Sem dados de variação disponíveis.</div>';return;}
+  const maxAbs=Math.max(...sorted.map(v=>Math.abs(v.delta)),1);
+  document.getElementById('pz-variacao').innerHTML=sorted.map(v=>{
+    const up=v.delta>0;
+    const w=Math.round(Math.abs(v.delta)/maxAbs*100);
+    return`<div class="pz-var-row">
+      <div style="width:130px;font-size:11px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${v.cliente}">${v.cliente}</div>
+      <div style="width:32px;text-align:right;font-size:10px;color:var(--txt2)">${v.p25!=null?v.p25.toFixed(0)+'d':'—'}</div>
+      <div class="pz-var-bar-wrap" style="margin:0 5px"><div class="pz-var-bar" style="width:${w}%;background:${up?'#dc2626':'#15803d'}"></div></div>
+      <div style="width:32px;font-size:10px;color:var(--txt)">${v.p26!=null?v.p26.toFixed(0)+'d':'—'}</div>
+      <span class="pz-badge ${up?'pz-up':'pz-dn'}" style="min-width:46px;justify-content:center">${up?'+':''}${v.delta.toFixed(1)}d</span>
+    </div>`;
+  }).join('');
+}
+
+function pzRenderRanking(){
+  const clientes=pzGetFilteredClientes().sort((a,b)=>b.med-a.med);
+  document.getElementById('pz-tbl-body').innerHTML=clientes.map((c,i)=>{
+    const bc=c.med<=15?'pz-green':c.med<=30?'pz-yellow':c.med<=60?'pz-orange':'pz-red';
+    const dh=c.delta!=null?`<span class="pz-badge ${c.delta>0?'pz-up':c.delta<0?'pz-dn':'pz-neutral'}">${c.delta>0?'+':''}${c.delta.toFixed(1)}d</span>`:'<span style="color:var(--txt2);font-size:10px">—</span>';
+    const sel=PZ_SEL===c.cliente?'pz-sel':'';
+    return`<tr class="${sel}" onclick="pzShowDetail('${c.cliente.replace(/'/g,"\\'")}')">
+      <td style="color:var(--txt2);font-size:10px">${i+1}</td>
+      <td style="font-weight:600">${c.cliente}</td>
+      <td style="font-size:10px;color:var(--txt2)">${isARM(c.empresa)?'ARM 262':'Log Santos'}</td>
+      <td><span class="pz-badge ${bc}">${c.med.toFixed(1)}d</span></td>
+      <td style="font-size:10px;color:var(--txt2)">${c.min}d / ${c.max}d</td>
+      <td>${dh}</td>
+      <td style="font-size:10px;color:var(--txt2)">${c.qtd.toLocaleString('pt-BR')}</td>
+      <td style="font-size:11px">${fmt(c.valor)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function pzRenderFaixas(){
+  const clientes=pzGetFilteredClientes();
+  const faixas=[{l:'≤ 15 dias',cls:'pz-green',max:15},{l:'16–30 dias',cls:'pz-yellow',min:16,max:30},{l:'31–60 dias',cls:'pz-orange',min:31,max:60},{l:'+ 60 dias',cls:'pz-red',min:61}];
+  document.getElementById('pz-faixas').innerHTML=faixas.map(f=>{
+    const list=clientes.filter(c=>(f.min===undefined||c.med>=f.min)&&(f.max===undefined||c.med<=f.max));
+    const tot=list.reduce((s,c)=>s+c.valor,0);
+    const p=clientes.length?Math.round(list.length/clientes.length*100):0;
+    return`<div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span class="pz-badge ${f.cls}">${f.l}</span>
+        <span style="font-size:12px;font-weight:600">${list.length} clientes</span>
+        <span style="font-size:11px;color:var(--txt2)">(${p}%) — ${fmtM(tot)}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap">${list.map(c=>`<span class="pz-chip">${c.cliente}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function pzShowDetail(clienteNome,scroll=true){
+  PZ_SEL=clienteNome;
+  const c=(PRAZO_DATA.clientes||[]).find(x=>x.cliente===clienteNome);
+  if(!c)return;
+  document.getElementById('pz-detail-card').style.display='block';
+  document.getElementById('pz-d-nome').textContent=c.cliente;
+  document.getElementById('pz-d-emp').textContent=isARM(c.empresa)?'ARM 262':'Log Santos';
+  document.getElementById('pz-d-medio').textContent=c.med.toFixed(1)+' dias';
+  document.getElementById('pz-d-minmax').textContent=c.min+'d / '+c.max+'d';
+  document.getElementById('pz-d-2025').textContent=c.p25!=null?c.p25.toFixed(1)+' dias':'—';
+  document.getElementById('pz-d-2026').textContent=c.p26!=null?c.p26.toFixed(1)+' dias':'—';
+  document.getElementById('pz-d-delta').innerHTML=c.delta!=null?`<span style="color:${c.delta>0?'#dc2626':'#15803d'};font-weight:600">${c.delta>0?'+':''}${c.delta.toFixed(1)}d (${c.deltaPct>0?'+':''}${c.deltaPct.toFixed(0)}%)</span>`:'—';
+  document.getElementById('pz-d-qtd').textContent=c.qtd.toLocaleString('pt-BR')+' faturas';
+  document.getElementById('pz-d-valor').textContent=fmtM(c.valor);
+  // Mini chart
+  const monthly=PRAZO_DATA.clienteMensal?.[clienteNome]||{};
+  const mKeys=Object.keys(monthly).sort();
+  const ctx2=document.getElementById('c-pz-detail').getContext('2d');
+  if(CH_PZ_DETAIL){CH_PZ_DETAIL.destroy();CH_PZ_DETAIL=null;}
+  if(mKeys.length){
+    const lbls=mKeys.map(k=>{const p=k.split('-');return MES_NAMES[parseInt(p[1])-1]+'/'+p[0].slice(2);});
+    CH_PZ_DETAIL=new Chart(ctx2,{
+      type:'bar',
+      data:{labels:lbls,datasets:[{label:'Prazo médio',data:mKeys.map(k=>monthly[k]),backgroundColor:'rgba(232,117,26,0.7)',borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.raw.toFixed(1)} dias`}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9ca3af'}},y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:9},color:'#9ca3af',callback:v=>v+'d'}}}}
+    });
+    CH['pz-detail']=CH_PZ_DETAIL;
+  }
+  // Highlight row
+  document.querySelectorAll('#pz-tbl-body tr').forEach(tr=>{
+    tr.classList.toggle('pz-sel',tr.querySelector('td:nth-child(2)')?.textContent===clienteNome);
+  });
+  if(scroll)document.getElementById('pz-detail-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function pzCloseDetail(){
+  PZ_SEL=null;
+  document.getElementById('pz-detail-card').style.display='none';
+  document.querySelectorAll('#pz-tbl-body tr').forEach(tr=>tr.classList.remove('pz-sel'));
+}
+
+function pzSetTab(t){
+  PZ_TAB=t;
+  document.getElementById('pz-tab-ranking').style.display=t==='ranking'?'block':'none';
+  document.getElementById('pz-tab-faixas').style.display=t==='faixas'?'block':'none';
+  document.querySelectorAll('.pz-tab').forEach(el=>el.classList.toggle('on',
+    (t==='ranking'&&el.textContent.trim()==='Ranking')||(t==='faixas'&&el.textContent.trim()==='Por faixa')));
+  if(t==='faixas')pzRenderFaixas();else pzRenderRanking();
 }
 
 function reloadData(){
@@ -901,6 +1319,7 @@ function reloadData(){
   btn.disabled=true;
   // Limpa dados atuais e recarrega
   MONTHS_META=[];MONTHS=[];M={total:[],ARM:[],LOG:[],emp:{}};
+  CLIENTS=[];PRODS=[];EMPDATA=[];PRAZO_DATA={rows:[],clientes:[],mensal:[],mensal_emp:{},variacao:[]};
   CLIENTS=[];PRODS=[];EMPDATA=[];
   document.getElementById('loading-overlay').style.display='flex';
   document.getElementById('loading-msg').textContent='Buscando dados atualizados...';
@@ -921,6 +1340,7 @@ async function loadData(){
     if(rows.length<2)throw new Error('Planilha vazia ou sem dados');
     const headers=rows[0].map(h=>h.trim());
     const cDate=findCol(headers,['EMISSÃO','EMISSAO','DATA EMISS']);
+    const cVcto=findCol(headers,['VCTO','VENCIMENTO','DATA VCTO']);
     const cEmp=findCol(headers,['EMPRESA']);
     const cCli=findCol(headers,['CLIENTE.1','CLIENTE']);
     const cVal=findCol(headers,['VLR PARCELA','PARCELA','VALOR']);
@@ -947,7 +1367,9 @@ async function loadData(){
         cliente:(cCli>=0?row[cCli]||'':'').trim(),
         produto:(cProd>=0?row[cProd]||'':'').trim(),
         criado:(cCri>=0?row[cCri]||'':'').trim(),
-        valor
+        valor,
+        emissaoDate:new Date(dt.year,dt.month-1,1),
+        vctoRaw:(cVcto>=0?row[cVcto]||'':'')
       });
     }
     if(!raw.length)throw new Error('Nenhum lançamento válido encontrado');
