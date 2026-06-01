@@ -595,6 +595,7 @@ function updateMonthLabel(){
 }
 function initColabFilter(){
   const sel=document.getElementById('femp-sel');
+  if(!sel)return;
   sel.innerHTML='<option value="all">Todos</option>'+
     EMPDATA.map(e=>`<option value="${e.id}">${e.full}</option>`).join('');
 }
