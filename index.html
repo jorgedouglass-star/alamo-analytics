@@ -218,11 +218,12 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 .hs-verde{background:#dcfce7;color:#15803d}
 .hs-amarelo{background:#fef9c3;color:#854d0e}
 .hs-vermelho{background:#fee2e2;color:#991b1b}
-.hs-sort-btn{padding:3px 10px;font-size:10px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.hs-sort-btn{padding:3px 10px;font-size:10px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0}
 .hs-sort-btn.active{background:#1A4FA0;border-color:#1A4FA0;color:#fff}
 .hs-sort-btn:not(.active):hover{border-color:#1A4FA0;color:#1A4FA0}
-.hs-sum-n{font-size:22px;font-weight:700}
-.hs-sum-l{font-size:11px;color:var(--txt2);margin-top:2px}
+.hs-sum-card{background:var(--sec);border-radius:10px;padding:12px 16px;text-align:center;flex:1;min-width:120px}
+.hs-sum-n{font-size:22px;font-weight:700;line-height:1.1}
+.hs-sum-l{font-size:11px;color:var(--txt2);margin-top:3px}
 /* FORECAST */
 .fc-card{flex:1;min-width:100px;background:var(--sec);border-radius:10px;padding:10px 14px;border-left:3px solid #1A4FA0}
 .fc-card-label{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
@@ -419,14 +420,14 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
   </div>
   <!-- HEALTH SCORE -->
   <div class="cc">
-    <div class="ctitle">
-      Score de Saúde dos Clientes
-      <div style="display:flex;align-items:center;gap:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div class="ctitle" style="margin-bottom:0">Score de Saúde dos Clientes</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span class="ctag">RFV — Recência · Frequência · Valor</span>
-        <button class="hs-sort-btn active" id="hs-sort-asc" onclick="hsSetSort('desc')" title="Melhor → Pior">
+        <button class="hs-sort-btn active" id="hs-sort-asc" onclick="hsSetSort('desc')">
           <i class="ti ti-sort-descending-numbers"></i> Melhor → Pior
         </button>
-        <button class="hs-sort-btn" id="hs-sort-desc" onclick="hsSetSort('asc')" title="Pior → Melhor">
+        <button class="hs-sort-btn" id="hs-sort-desc" onclick="hsSetSort('asc')">
           <i class="ti ti-sort-ascending-numbers"></i> Pior → Melhor
         </button>
       </div>
