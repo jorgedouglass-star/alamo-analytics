@@ -541,6 +541,7 @@ let M={total:[],ARM:[],LOG:[],emp:{}};
 let CLIENTS=[];
 let PRODS=[];
 let EMPDATA=[];
+let RAW_ALL=[];
 let PRAZO_DATA={rows:[],clientes:[],mensal:[],mensal_emp:{},variacao:[]};
 const EMP_COLORS=['#E8751A','#1A4FA0','#0F9E75','#7C3AED','#D97706'];
 const PROD_COLORS=['#E8751A','#1A4FA0','#0F9E75','#7C3AED','#D97706','#DC2626','#0891B2','#059669','#6366f1','#6B7280'];
@@ -846,19 +847,43 @@ function renderProdutos(){
 // ============================================================
 // OPERACIONAL
 // ============================================================
+function getFilteredEmpData(){
+  // Recalcula EMPDATA respeitando os filtros ativos (ano, mês, empresa)
+  const idxs=getSelectedIndices();
+  const mthSet=new Set(idxs.map(i=>{
+    const m=MONTHS_META[i];
+    return m?m.year+'-'+String(m.month).padStart(2,'0'):null;
+  }).filter(Boolean));
+
+  const eMap={};
+  RAW_ALL.forEach(r=>{
+    const key=r.year+'-'+String(r.month).padStart(2,'0');
+    if(!mthSet.has(key))return;
+    if(ST.empresas.length<2&&!ST.empresas.includes(isARM(r.empresa)?'ARM':'LOG'))return;
+    const es=getEmpShort(r.criado);if(!es)return;
+    const full=r.criado.trim();
+    if(!eMap[full])eMap[full]={id:es,full,r:0,l:0};
+    eMap[full].r+=r.valor;eMap[full].l++;
+  });
+  const totE=Object.values(eMap).reduce((s,e)=>s+e.r,0)||1;
+  return Object.values(eMap).sort((a,b)=>b.r-a.r).slice(0,6)
+    .map(e=>({...e,t:e.l>0?e.r/e.l:0,p:Math.round(e.r/totE*1000)/10,role:getEmpRole(e.full)}));
+}
+
 function renderOperacional(){
-  if(!EMPDATA.length)return;
-  const fEmp=ST.colab==='all'?EMPDATA:EMPDATA.filter(e=>e.id===ST.colab);
+  const empData=getFilteredEmpData();
+  if(!empData.length)return;
+  const fEmp=ST.colab==='all'?empData:empData.filter(e=>e.id===ST.colab);
   const totR=sum(fEmp.map(e=>e.r)),totL=sum(fEmp.map(e=>e.l));
-  const maxTicketEmp=EMPDATA.reduce((m,e)=>e.t>m.t?e:m,EMPDATA[0]);
-  const topEmp=EMPDATA[0];
+  const maxTicketEmp=empData.reduce((m,e)=>e.t>m.t?e:m,empData[0]);
+  const topEmp=empData[0];
   document.getElementById('op-kpis').innerHTML=[
     {l:'Receita equipe',v:fmtM(totR),s:fEmp.length+' colaborador(es)',c:'nt'},
     {l:'Total lançamentos',v:totL.toLocaleString('pt-BR'),s:'registros',c:'nt'},
     {l:'Maior ticket',v:fmt(maxTicketEmp?.t||0),s:maxTicketEmp?.full?.split(' ')[0]||'',c:'nt'},
     {l:'Top colaborador',v:(topEmp?.p||0)+'%',s:topEmp?.full?.split(' ')[0]||'',c:'up'}
   ].map(k=>`<div class="kcard"><div class="klabel">${k.l}</div><div class="kval">${k.v}</div><div class="ksub ${k.c}">${k.s}</div></div>`).join('');
-  document.getElementById('emp-cards').innerHTML=EMPDATA.map((emp,i)=>
+  document.getElementById('emp-cards').innerHTML=empData.map((emp,i)=>
     `<div class="ec">
       <div class="ec-hdr">
         <div class="avatar" style="background:${EMP_COLORS[i]||'#888'}">${emp.full.split(' ').slice(0,2).map(w=>w[0]).join('')}</div>
@@ -870,7 +895,7 @@ function renderOperacional(){
       <div class="epct-label">${emp.p}% da receita total</div>
     </div>`).join('');
   const mths=getMonths();
-  const topIds=EMPDATA.slice(0,3).map(e=>e.id);
+  const topIds=empData.slice(0,3).map(e=>e.id);
   document.getElementById('emp-lgnd').innerHTML=topIds.map((id,i)=>
     `<span><span class="sw" style="background:${EMP_COLORS[i]}"></span>${id}</span>`).join('');
   CH['empmth']=new Chart(document.getElementById('c-empmth'),{
@@ -886,13 +911,13 @@ function renderOperacional(){
   });
   CH['scatter']=new Chart(document.getElementById('c-scatter'),{
     type:'bubble',
-    data:{datasets:EMPDATA.filter(e=>e.l>5).map((emp,i)=>({
+    data:{datasets:empData.filter(e=>e.l>5).map((emp,i)=>({
       label:emp.full.split(' ')[0],
       data:[{x:emp.l,y:emp.r,r:Math.max(8,Math.min(24,Math.sqrt(emp.t/28)))}],
       backgroundColor:(EMP_COLORS[i]||'#888')+'aa'
     }))},
     options:{...baseOpts,
-      plugins:{legend:{display:false},tooltip:{callbacks:{title:v=>v[0].dataset.label,label:v=>[`Lançamentos: ${v.raw.x.toLocaleString('pt-BR')}`,`Receita: ${fmt(v.raw.y)}`,`Ticket médio: ${fmt(EMPDATA[v.datasetIndex]?.t||0)}`]}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:v=>v[0].dataset.label,label:v=>[`Lançamentos: ${v.raw.x.toLocaleString('pt-BR')}`,`Receita: ${fmt(v.raw.y)}`,`Ticket médio: ${fmt(empData[v.datasetIndex]?.t||0)}`]}}},
       scales:{x:{title:{display:true,text:'Nº de lançamentos',font:{size:10},color:tickColor()},ticks:{font:{size:10},color:tickColor()},grid:{display:false}},
               y:{title:{display:true,text:'Receita total',font:{size:10},color:tickColor()},ticks:{font:{size:10},color:tickColor(),callback:v=>fmtM(v)},grid:{color:gridColor()}}}}
   });
@@ -1082,6 +1107,7 @@ function getEmpRole(name){
 }
 
 function buildAggregates(raw){
+  RAW_ALL=raw; // guarda todas as linhas para filtros dinâmicos
   const monthMap={};
   raw.forEach(r=>{
     const k=`${r.year}-${String(r.month).padStart(2,'0')}`;
@@ -1446,7 +1472,7 @@ function reloadData(){
   btn.disabled=true;
   // Limpa dados atuais e recarrega
   MONTHS_META=[];MONTHS=[];M={total:[],ARM:[],LOG:[],emp:{}};
-  CLIENTS=[];PRODS=[];EMPDATA=[];PRAZO_DATA={rows:[],clientes:[],mensal:[],mensal_emp:{},variacao:[]};
+  CLIENTS=[];PRODS=[];EMPDATA=[];RAW_ALL=[];PRAZO_DATA={rows:[],clientes:[],mensal:[],mensal_emp:{},variacao:[]};
   CLIENTS=[];PRODS=[];EMPDATA=[];
   document.getElementById('loading-overlay').style.display='flex';
   document.getElementById('loading-msg').textContent='Buscando dados atualizados...';
