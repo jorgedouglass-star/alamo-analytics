@@ -205,6 +205,25 @@ body.dark input[type=checkbox]{accent-color:#E8751A}
 body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 .meta-sug{padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s}
 .meta-sug:hover{background:#E8751A;border-color:#E8751A;color:#fff}
+/* HEALTH SCORE */
+.hs-row{display:grid;grid-template-columns:1fr 60px 80px 80px 80px 90px;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:12px;margin-bottom:4px;border:1px solid transparent}
+.hs-row:hover{background:var(--sec)}
+.hs-row.header{font-size:10px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;padding:4px 10px;margin-bottom:6px}
+.hs-score-wrap{display:flex;align-items:center;gap:6px}
+.hs-score-bar{height:5px;border-radius:3px;flex:1;background:var(--sec)}
+.hs-score-fill{height:100%;border-radius:3px}
+.hs-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.hs-verde{background:#dcfce7;color:#15803d}
+.hs-amarelo{background:#fef9c3;color:#854d0e}
+.hs-vermelho{background:#fee2e2;color:#991b1b}
+.hs-sum-card{background:var(--sec);border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:100px}
+.hs-sum-n{font-size:22px;font-weight:700}
+.hs-sum-l{font-size:11px;color:var(--txt2);margin-top:2px}
+/* FORECAST */
+.fc-card{flex:1;min-width:100px;background:var(--sec);border-radius:10px;padding:10px 14px;border-left:3px solid #1A4FA0}
+.fc-card-label{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.fc-card-val{font-size:16px;font-weight:700;color:var(--txt)}
+.fc-card-range{font-size:10px;color:var(--txt2);margin-top:2px}
 </style>
 </head>
 <body>
@@ -333,6 +352,16 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
       <div style="position:relative;width:100%;height:160px"><canvas id="c-trend" role="img" aria-label="Evolução mensal da receita"></canvas></div>
     </div>
   </div>
+  <!-- FORECAST -->
+  <div class="cc" style="margin-bottom:12px">
+    <div class="ctitle">
+      Forecast — próximos 3 meses
+      <span class="ctag" id="fc-tag">modelo sazonalidade</span>
+    </div>
+    <div style="position:relative;width:100%;height:200px"><canvas id="c-forecast" role="img" aria-label="Forecast receita próximos 3 meses"></canvas></div>
+    <div id="fc-cards" style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"></div>
+    <div style="font-size:10px;color:var(--txt2);margin-top:8px"><i class="ti ti-info-circle"></i> Modelo: média ponderada com sazonalidade histórica dos últimos 18 meses + tendência linear. Banda de confiança ±15%.</div>
+  </div>
   <div class="two">
     <div class="cc">
       <div class="ctitle">ARM vs LOG Santos <span class="ctag" id="split-tag"></span></div>
@@ -383,6 +412,16 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
   <div class="cc">
     <div class="ctitle">Perfil completo — ticket médio e volume operacional</div>
     <div id="cl-detail"></div>
+  </div>
+  <!-- HEALTH SCORE -->
+  <div class="cc">
+    <div class="ctitle">
+      Score de Saúde dos Clientes
+      <span class="ctag">RFV — Recência · Frequência · Valor</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap" id="hs-summary"></div>
+    <div id="hs-table"></div>
+    <div style="font-size:10px;color:var(--txt2);margin-top:10px"><i class="ti ti-info-circle"></i> Score 0–100: combina Recência (último lançamento), Frequência (regularidade mensal) e Valor (receita relativa). <span style="color:#15803d;font-weight:600">■ Saudável</span> ≥70 · <span style="color:#E8751A;font-weight:600">■ Atenção</span> 40–69 · <span style="color:#dc2626;font-weight:600">■ Risco</span> &lt;40</div>
   </div>
 </div>
 
@@ -774,6 +813,7 @@ function renderOverview(){
      <div class="cl-bwrap"><div class="cl-bar" style="width:${Math.round(c.r/maxR*100)}%"></div></div>
      <div class="cl-val">${fmt(c.r)}</div></div>`).join('');
   renderGauge();
+  renderForecast();
 }
 
 // ============================================================
@@ -816,6 +856,8 @@ function renderClientes(){
       <div style="font-size:10px;color:var(--txt2)">${c.l} lanç.</div>
       ${badges}</div>`;
   }).join('');
+  buildHealthScores();
+  renderHealthScore();
 }
 
 // ============================================================
@@ -1806,6 +1848,191 @@ async function exportPDF(){
 
 // Alias para acessar M dentro de exportPDF sem conflito de nome
 const M_data=M;
+
+// ============================================================
+// HEALTH SCORE — RFV (Recência · Frequência · Valor)
+// ============================================================
+let HEALTH_SCORES=[];
+
+function buildHealthScores(){
+  if(!RAW_ALL.length)return;
+  // Encontra o mês mais recente nos dados
+  const latest=RAW_ALL.reduce((m,r)=>r.year*12+r.month>m.year*12+m.month?r:m,RAW_ALL[0]);
+  const latestYM=latest.year*12+latest.month;
+
+  // Agrupa por cliente
+  const cMap={};
+  RAW_ALL.forEach(r=>{
+    if(!r.cliente)return;
+    if(!cMap[r.cliente])cMap[r.cliente]={n:r.cliente,e:isARM(r.empresa)?'ARM':'LOG',r:0,l:0,months:new Set(),lastYM:0};
+    const ym=r.year*12+r.month;
+    cMap[r.cliente].r+=r.valor;
+    cMap[r.cliente].l++;
+    cMap[r.cliente].months.add(r.year+'-'+r.month);
+    if(ym>cMap[r.cliente].lastYM)cMap[r.cliente].lastYM=ym;
+  });
+
+  const clients=Object.values(cMap);
+  const maxR=Math.max(...clients.map(c=>c.r),1);
+  const maxL=Math.max(...clients.map(c=>c.l),1);
+  const totalMonths=18; // janela de análise
+
+  HEALTH_SCORES=clients.map(c=>{
+    // Recência: meses desde o último lançamento (0=atual, penaliza ausência)
+    const monthsAgo=latestYM-c.lastYM;
+    const recScore=Math.max(0,100-monthsAgo*20); // cada mês sem lançar perde 20pts
+
+    // Frequência: % dos meses com pelo menos 1 lançamento
+    const freqScore=Math.round(c.months.size/totalMonths*100);
+
+    // Valor: receita relativa ao maior cliente
+    const valScore=Math.round(c.r/maxR*100);
+
+    // Score final ponderado: Recência 40% · Frequência 30% · Valor 30%
+    const score=Math.round(recScore*0.4+freqScore*0.3+valScore*0.3);
+    const status=score>=70?'Saudável':score>=40?'Atenção':'Risco';
+
+    return{...c,recScore,freqScore,valScore,score,status,monthsAgo};
+  }).sort((a,b)=>b.score-a.score);
+}
+
+function renderHealthScore(){
+  const filtC=ST.empresas.length<2
+    ?HEALTH_SCORES.filter(c=>ST.empresas.includes(c.e))
+    :HEALTH_SCORES;
+  if(!filtC.length)return;
+
+  // Summary cards
+  const saudavel=filtC.filter(c=>c.status==='Saudável').length;
+  const atencao=filtC.filter(c=>c.status==='Atenção').length;
+  const risco=filtC.filter(c=>c.status==='Risco').length;
+  document.getElementById('hs-summary').innerHTML=[
+    {n:saudavel,l:'Saudáveis',c:'#15803d',bg:'#dcfce7'},
+    {n:atencao,l:'Em Atenção',c:'#854d0e',bg:'#fef9c3'},
+    {n:risco,l:'Em Risco',c:'#991b1b',bg:'#fee2e2'},
+    {n:filtC.length,l:'Total analisado',c:'var(--txt)',bg:'var(--sec)'}
+  ].map(s=>`<div class="hs-sum-card" style="border-top:3px solid ${s.c};background:${s.bg}">
+    <div class="hs-sum-n" style="color:${s.c}">${s.n}</div>
+    <div class="hs-sum-l">${s.l}</div>
+  </div>`).join('');
+
+  // Tabela
+  const rows=filtC.slice(0,25);
+  const tbl=document.getElementById('hs-table');
+  tbl.innerHTML=`
+  <div class="hs-row header">
+    <div>Cliente</div><div style="text-align:center">Score</div>
+    <div>Recência</div><div>Frequência</div><div>Valor</div><div>Status</div>
+  </div>`+rows.map(c=>{
+    const cor=c.status==='Saudável'?'#15803d':c.status==='Atenção'?'#E8751A':'#dc2626';
+    const badge=c.status==='Saudável'?'hs-verde':c.status==='Atenção'?'hs-amarelo':'hs-vermelho';
+    const barW=c.score+'%';
+    return`<div class="hs-row">
+      <div style="font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.n}">${c.n}</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${cor};text-align:center">${c.score}</div>
+        <div class="hs-score-bar"><div class="hs-score-fill" style="width:${barW};background:${cor}"></div></div>
+      </div>
+      <div style="color:var(--txt2);font-size:11px">${c.recScore}<small>/100</small></div>
+      <div style="color:var(--txt2);font-size:11px">${c.freqScore}<small>/100</small></div>
+      <div style="color:var(--txt2);font-size:11px">${c.valScore}<small>/100</small></div>
+      <div><span class="hs-badge ${badge}">${c.status}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// FORECAST — Sazonalidade + Tendência Linear
+// ============================================================
+function buildForecast(rev, mths){
+  if(rev.length<6)return null;
+  const n=rev.length;
+
+  // 1. Tendência linear (mínimos quadrados)
+  const xs=[...Array(n).keys()];
+  const meanX=xs.reduce((a,b)=>a+b,0)/n;
+  const meanY=rev.reduce((a,b)=>a+b,0)/n;
+  const slope=xs.reduce((s,x,i)=>s+(x-meanX)*(rev[i]-meanY),0)/xs.reduce((s,x)=>s+(x-meanX)**2,0);
+  const intercept=meanY-slope*meanX;
+
+  // 2. Índices sazonais por mês do ano (usando todos os dados disponíveis no RAW_ALL)
+  const seasonal={};const seasonalCount={};
+  const trendVals=xs.map(x=>intercept+slope*x);
+  rev.forEach((v,i)=>{
+    const m=MONTHS_META[getSelectedIndices()[i]]?.month;
+    if(!m)return;
+    const ratio=trendVals[i]>0?v/trendVals[i]:1;
+    seasonal[m]=(seasonal[m]||0)+ratio;
+    seasonalCount[m]=(seasonalCount[m]||0)+1;
+  });
+  Object.keys(seasonal).forEach(m=>{seasonal[m]/=seasonalCount[m];});
+
+  // 3. Projeta 3 meses à frente
+  const lastMeta=MONTHS_META[getSelectedIndices()[n-1]];
+  if(!lastMeta)return null;
+  const forecasts=[];
+  for(let i=1;i<=3;i++){
+    const futureX=n-1+i;
+    const trend=intercept+slope*futureX;
+    let futM=(lastMeta.month-1+i)%12+1;
+    const futY=lastMeta.year+Math.floor((lastMeta.month-1+i)/12);
+    const si=seasonal[futM]||1;
+    const point=Math.max(0,trend*si);
+    const lo=point*0.85;
+    const hi=point*1.15;
+    const label=MES_NAMES[futM-1]+'/'+String(futY).slice(2);
+    forecasts.push({label,point,lo,hi,month:futM,year:futY});
+  }
+  return forecasts;
+}
+
+function renderForecast(){
+  const rev=getRevSlice();
+  const mths=getMonths();
+  if(rev.length<6){
+    document.getElementById('fc-tag').textContent='dados insuficientes (mín. 6 meses)';
+    document.getElementById('fc-cards').innerHTML='';
+    return;
+  }
+  const fc=buildForecast(rev,mths);
+  if(!fc)return;
+
+  // Gráfico: histórico + projeção
+  const allLabels=[...mths,...fc.map(f=>f.label)];
+  const histData=[...rev,...Array(3).fill(null)];
+  const fcData=[...Array(rev.length-1).fill(null),rev[rev.length-1],...fc.map(f=>f.point)];
+  const fcHi=[...Array(rev.length-1).fill(null),rev[rev.length-1],...fc.map(f=>f.hi)];
+  const fcLo=[...Array(rev.length-1).fill(null),rev[rev.length-1],...fc.map(f=>f.lo)];
+
+  if(CH['forecast']){CH['forecast'].destroy();CH['forecast']=null;}
+  const ctx=document.getElementById('c-forecast').getContext('2d');
+  CH['forecast']=new Chart(ctx,{
+    type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Histórico',data:histData,borderColor:'#E8751A',backgroundColor:'rgba(232,117,26,0.08)',fill:true,tension:0.35,pointRadius:2,borderWidth:2.5,spanGaps:false},
+      {label:'Forecast',data:fcData,borderColor:'#1A4FA0',backgroundColor:'transparent',borderDash:[6,3],tension:0.3,pointRadius:4,pointBackgroundColor:'#1A4FA0',borderWidth:2,spanGaps:true},
+      {label:'Limite sup.',data:fcHi,borderColor:'rgba(26,79,160,0.2)',backgroundColor:'rgba(26,79,160,0.08)',fill:'+1',tension:0.3,pointRadius:0,borderWidth:1,spanGaps:true},
+      {label:'Limite inf.',data:fcLo,borderColor:'rgba(26,79,160,0.2)',backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:0,borderWidth:1,spanGaps:true}
+    ]},
+    options:{...baseOpts,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.dataset.label+': '+fmtM(v.raw)}}},
+      scales:{
+        x:{ticks:{font:{size:9},color:tickColor(),maxRotation:45,autoSkip:true},grid:{display:false}},
+        y:{ticks:{font:{size:10},color:tickColor(),callback:v=>fmtM(v)},grid:{color:gridColor()}}
+      }
+    }
+  });
+
+  // Cards dos 3 meses
+  document.getElementById('fc-cards').innerHTML=fc.map(f=>`
+    <div class="fc-card">
+      <div class="fc-card-label">${f.label}</div>
+      <div class="fc-card-val">${fmtM(f.point)}</div>
+      <div class="fc-card-range">${fmtM(f.lo)} – ${fmtM(f.hi)}</div>
+    </div>`).join('');
+
+  document.getElementById('fc-tag').textContent=`projetado com ${rev.length} meses de histórico`;
+}
 
 // ============================================================
 // META MENSAL — GAUGE
