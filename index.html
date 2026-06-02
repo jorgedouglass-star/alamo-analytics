@@ -203,6 +203,8 @@ body.dark input[type=checkbox]{accent-color:#E8751A}
 @keyframes sparkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.2)}}
 .tb-ia-badge{font-size:9px;font-weight:700;background:var(--or);color:#fff;padding:1px 5px;border-radius:6px;letter-spacing:.4px;margin-left:2px;vertical-align:middle}
 body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
+.meta-sug{padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s}
+.meta-sug:hover{background:#E8751A;border-color:#E8751A;color:#fff}
 </style>
 </head>
 <body>
@@ -297,9 +299,39 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 <!-- VISÃO GERAL -->
 <div id="sec-overview" class="sec on">
   <div class="kgrid" id="kpis"></div>
-  <div class="cc">
-    <div class="ctitle">Evolução mensal da receita <span class="ctag" id="trend-tag"></span></div>
-    <div style="position:relative;width:100%;height:210px"><canvas id="c-trend" role="img" aria-label="Evolução mensal da receita"></canvas></div>
+  <!-- GAUGE META -->
+  <div class="two" style="margin-bottom:12px">
+    <div class="cc" id="meta-card">
+      <div class="ctitle">
+        Meta do mês
+        <button onclick="openMetaModal()" style="font-size:11px;padding:3px 10px;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;font-weight:500" title="Configurar meta"><i class="ti ti-settings"></i> Configurar</button>
+      </div>
+      <div id="meta-body" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+        <div style="position:relative;width:160px;height:90px;flex-shrink:0">
+          <canvas id="c-gauge" role="img" aria-label="Gauge meta vs realizado"></canvas>
+          <div id="gauge-center" style="position:absolute;bottom:0;left:0;right:0;text-align:center">
+            <div id="gauge-pct" style="font-size:22px;font-weight:700;color:var(--txt);line-height:1">—</div>
+            <div style="font-size:10px;color:var(--txt2);margin-top:2px">da meta</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <div id="meta-realizado-label" style="font-size:11px;color:var(--txt2);margin-bottom:2px">Realizado no mês</div>
+          <div id="meta-realizado-val" style="font-size:20px;font-weight:700;color:var(--txt)">—</div>
+          <div style="margin:10px 0 4px;height:8px;background:var(--sec);border-radius:4px;overflow:hidden">
+            <div id="meta-bar" style="height:100%;border-radius:4px;background:#E8751A;transition:width .6s ease;width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--txt2)">
+            <span>R$0</span>
+            <span id="meta-val-label">Meta: —</span>
+          </div>
+          <div id="meta-status" style="margin-top:8px;font-size:12px;font-weight:600"></div>
+        </div>
+      </div>
+    </div>
+    <div class="cc">
+      <div class="ctitle">Evolução mensal da receita <span class="ctag" id="trend-tag"></span></div>
+      <div style="position:relative;width:100%;height:160px"><canvas id="c-trend" role="img" aria-label="Evolução mensal da receita"></canvas></div>
+    </div>
   </div>
   <div class="two">
     <div class="cc">
@@ -310,6 +342,34 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
       <div class="ctitle">Top 5 clientes</div>
       <div id="top5"></div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL META -->
+<div id="meta-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:16px;padding:28px 32px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--txt)"><i class="ti ti-target" style="color:#E8751A"></i> Configurar Meta de Receita</div>
+      <button onclick="closeMetaModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--txt2)">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:16px">Defina a meta mensal de receita. O gauge será atualizado em tempo real com base no mês mais recente dos dados.</div>
+    <label style="font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Meta mensal (R$)</label>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input id="meta-input" type="number" min="0" step="100000" placeholder="Ex: 5000000"
+        style="flex:1;padding:10px 14px;border:1.5px solid var(--bdr);border-radius:10px;font-size:14px;font-weight:600;color:var(--txt);background:var(--sec);outline:none;font-family:inherit"
+        onfocus="this.style.borderColor='#E8751A'" onblur="this.style.borderColor=''"
+        onkeydown="if(event.key==='Enter')saveMeta()">
+      <button onclick="saveMeta()" style="padding:10px 20px;background:#E8751A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Salvar</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <span style="font-size:11px;color:var(--txt2);margin-right:4px;align-self:center">Sugestões:</span>
+      <button class="meta-sug" onclick="setMetaSug(3000000)">R$3M</button>
+      <button class="meta-sug" onclick="setMetaSug(4000000)">R$4M</button>
+      <button class="meta-sug" onclick="setMetaSug(5000000)">R$5M</button>
+      <button class="meta-sug" onclick="setMetaSug(6000000)">R$6M</button>
+      <button class="meta-sug" onclick="setMetaSug(8000000)">R$8M</button>
+    </div>
+    <div id="meta-saved-info" style="margin-top:14px;font-size:12px;color:#15803d;display:none"><i class="ti ti-check"></i> Meta salva com sucesso!</div>
   </div>
 </div>
 
@@ -644,74 +704,7 @@ const GRID='rgba(0,0,0,0.05)';
 const TXTC='#9ca3af';
 const baseOpts={responsive:true,maintainAspectRatio:false};
 // Plugin inline: rótulos no gráfico de linha
-const pluginTrendLabels={
-  id:'trendLabels',
-  afterDatasetsDraw(chart){
-    const {ctx,data,scales}=chart;
-    const ds=data.datasets[0];
-    if(!ds)return;
-    const meta=chart.getDatasetMeta(0);
-    const rev=ds.data;
-    const maxV=Math.max(...rev);
-    const lastIdx=rev.length-1;
-    // curIdx via chart option
-    const curIdx=chart.options._curIdx??-1;
-    meta.data.forEach((pt,i)=>{
-      const show=i===curIdx||rev[i]===maxV||i===lastIdx;
-      if(!show)return;
-      const x=pt.x,y=pt.y;
-      const label=fmtM(rev[i]);
-      const isCur=i===curIdx;
-      ctx.save();
-      ctx.font=`${isCur?'700':'600'} 10px -apple-system,sans-serif`;
-      ctx.fillStyle=isCur?'#E8751A':'#6b7a99';
-      ctx.textAlign='center';
-      ctx.textBaseline='bottom';
-      ctx.fillText(label,x,y-8);
-      // ponto de destaque no mês atual
-      if(isCur){
-        ctx.beginPath();
-        ctx.arc(x,y,6,0,Math.PI*2);
-        ctx.fillStyle='#E8751A';
-        ctx.fill();
-        ctx.strokeStyle='#fff';
-        ctx.lineWidth=2;
-        ctx.stroke();
-      }
-      ctx.restore();
-    });
-  }
-};
 
-// Plugin inline: rótulos no doughnut ARM vs LOG
-const pluginSplitLabels={
-  id:'splitLabels',
-  afterDatasetsDraw(chart){
-    if(!chart.options._splitLabels)return;
-    const {ctx,data}=chart;
-    const ds=data.datasets[0];
-    if(!ds||!ds.data.length)return;
-    const meta=chart.getDatasetMeta(0);
-    const tot=ds.data.reduce((a,b)=>a+b,0);
-    meta.data.forEach((arc,i)=>{
-      const {x,y}=arc.tooltipPosition();
-      const val=ds.data[i];
-      const lbl=data.labels[i]||'';
-      const pct=Math.round(val/tot*100)+'%';
-      ctx.save();
-      ctx.textAlign='center';
-      ctx.textBaseline='middle';
-      ctx.fillStyle='#fff';
-      ctx.font='700 11px -apple-system,sans-serif';
-      ctx.fillText(pct,x,y-7);
-      ctx.font='600 9px -apple-system,sans-serif';
-      ctx.fillText(fmtM(val),x,y+6);
-      ctx.restore();
-    });
-  }
-};
-
-Chart.register(pluginTrendLabels,pluginSplitLabels);
 function isDark(){return document.body.classList.contains('dark');}
 function gridColor(){return isDark()?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)';}
 function tickColor(){return isDark()?'#6b7a99':'#9ca3af';}
@@ -747,11 +740,10 @@ function renderOverview(){
   CH['trend']=new Chart(document.getElementById('c-trend'),{
     type:'line',
     data:{labels:mths,datasets:[{label:'Receita',data:rev,borderColor:'#E8751A',backgroundColor:'rgba(232,117,26,0.08)',fill:true,tension:0.35,
-      pointRadius:ptRadii,pointBorderColor:ptBorder,pointBackgroundColor:ptBg,pointBorderWidth:ptBorderW,pointHoverRadius:8
+      pointRadius:3,pointBorderColor:'#E8751A',pointBackgroundColor:'#fff',pointHoverRadius:6
     }]},
-    options:{...baseOpts,_curIdx:curIdx,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmt(v.raw)}},trendLabels:{}},
-      layout:{padding:{top:28}},
+    options:{...baseOpts,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmt(v.raw)}}},
       scales:{x:{ticks:{font:{size:10},color:tickColor(),maxRotation:45,autoSkip:false},grid:{display:false}},
               y:{ticks:{font:{size:10},color:tickColor(),callback:v=>fmtM(v)},grid:{color:gridColor()}}}}
   });
@@ -771,9 +763,8 @@ function renderOverview(){
   CH['split']=new Chart(document.getElementById('c-split'),{
     type:'doughnut',
     data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'#fff'}]},
-    options:{...baseOpts,cutout:'55%',_splitLabels:true,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.label+': '+fmt(v.raw)+' ('+Math.round(v.raw/(armTot+logTot)*100)+'%)'}},
-        splitLabels:{}}}
+    options:{...baseOpts,cutout:'62%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.label+': '+fmt(v.raw)+' ('+Math.round(v.raw/(armTot+logTot)*100)+'%)'}}}}
   });
   const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
   const maxR=filtC[0]?.r||1;
@@ -781,6 +772,7 @@ function renderOverview(){
     `<div class="cl-row"><div class="cl-rank">${i+1}</div><div class="cl-name" title="${c.n}">${c.n}</div>
      <div class="cl-bwrap"><div class="cl-bar" style="width:${Math.round(c.r/maxR*100)}%"></div></div>
      <div class="cl-val">${fmt(c.r)}</div></div>`).join('');
+  renderGauge();
 }
 
 // ============================================================
@@ -1788,6 +1780,95 @@ async function exportPDF(){
 
 // Alias para acessar M dentro de exportPDF sem conflito de nome
 const M_data=M;
+
+// ============================================================
+// META MENSAL — GAUGE
+// ============================================================
+let META_VAL = parseFloat(localStorage.getItem('alamo-meta')) || 0;
+let CH_GAUGE = null;
+
+function openMetaModal(){
+  document.getElementById('meta-modal').style.display='flex';
+  const inp=document.getElementById('meta-input');
+  if(META_VAL) inp.value=META_VAL;
+  inp.focus();
+  document.getElementById('meta-saved-info').style.display='none';
+}
+function closeMetaModal(){
+  document.getElementById('meta-modal').style.display='none';
+}
+function setMetaSug(v){
+  document.getElementById('meta-input').value=v;
+}
+function saveMeta(){
+  const v=parseFloat(document.getElementById('meta-input').value)||0;
+  META_VAL=v;
+  localStorage.setItem('alamo-meta',v);
+  document.getElementById('meta-saved-info').style.display='block';
+  setTimeout(()=>{
+    closeMetaModal();
+    renderGauge();
+  },800);
+}
+
+function renderGauge(){
+  // Pega receita do mês mais recente
+  const rev=getRevSlice();
+  const mths=getMonths();
+  if(!rev.length) return;
+  const realizado=rev[rev.length-1]||0;
+  const meta=META_VAL;
+  const pct=meta>0?Math.min(realizado/meta,1):0;
+  const pctDisplay=meta>0?Math.round(realizado/meta*100):0;
+
+  // Atualiza textos
+  document.getElementById('meta-realizado-val').textContent=fmtM(realizado);
+  document.getElementById('meta-realizado-label').textContent='Realizado — '+(mths[mths.length-1]||'mês atual');
+  document.getElementById('meta-val-label').textContent=meta>0?'Meta: '+fmtM(meta):'Meta não definida';
+  document.getElementById('meta-bar').style.width=(pct*100)+'%';
+  document.getElementById('meta-bar').style.background=pct>=1?'#15803d':pct>=0.8?'#E8751A':'#dc2626';
+
+  // Status
+  const statusEl=document.getElementById('meta-status');
+  if(!meta){
+    statusEl.innerHTML='<span style="color:var(--txt2)">Clique em Configurar para definir a meta do mês</span>';
+  } else if(pct>=1){
+    const extra=realizado-meta;
+    statusEl.innerHTML=`<span style="color:#15803d">✅ Meta atingida! +${fmtM(extra)} acima</span>`;
+  } else {
+    const falta=meta-realizado;
+    const cor=pct>=0.8?'#E8751A':'#dc2626';
+    statusEl.innerHTML=`<span style="color:${cor}">Faltam ${fmtM(falta)} para atingir a meta</span>`;
+  }
+
+  // Gauge (semicírculo)
+  document.getElementById('gauge-pct').textContent=meta>0?pctDisplay+'%':'—';
+  document.getElementById('gauge-pct').style.color=pct>=1?'#15803d':pct>=0.8?'#E8751A':'#dc2626';
+
+  const ctx=document.getElementById('c-gauge').getContext('2d');
+  if(CH_GAUGE){CH_GAUGE.destroy();CH_GAUGE=null;}
+  const filled=pct;
+  const empty=1-filled;
+  const cor=pct>=1?'#15803d':pct>=0.8?'#E8751A':'#dc2626';
+  CH_GAUGE=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      datasets:[{
+        data:[filled,empty,1], // 1 = metade invisível para semicírculo
+        backgroundColor:[cor,'rgba(0,0,0,0.07)','transparent'],
+        borderWidth:0,
+        circumference:180,
+        rotation:270,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      cutout:'72%',
+      plugins:{legend:{display:false},tooltip:{enabled:false}}
+    }
+  });
+  CH['gauge']=CH_GAUGE;
+}
 
 // ============================================================
 // TEMA CLARO / ESCURO
