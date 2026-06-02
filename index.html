@@ -791,22 +791,25 @@ function renderOverview(){
   const tot=sum(rev),n=rev.length;
   const mom=rev[n-1],momPrev=n>1?rev[n-2]:rev[0];
   const momPct=pct(mom,momPrev);
-  const meanM=avg(rev),maxM=Math.max(...rev);
+  const maxM=Math.max(...rev);
+  // Média apenas dos meses fechados (exclui mês atual se estiver em andamento)
+  const now=new Date();
+  const curMesStr=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
+  const curIdx=mths.findIndex(m=>m===curMesStr||m.replace('-','/')===curMesStr);
+  const revFechados=curIdx>=0?rev.filter((_,i)=>i!==curIdx):rev;
+  const meanM=revFechados.length>0?avg(revFechados):avg(rev);
+  const nFechados=revFechados.length;
   const armTot=ST.empresas.includes('ARM')?sum(getSelectedIndices().map(i=>M.ARM[i]||0)):0;
   const logTot=ST.empresas.includes('LOG')?sum(getSelectedIndices().map(i=>M.LOG[i]||0)):0;
   document.getElementById('kpis').innerHTML=[
     {l:'Receita Total',v:fmtM(tot),s:n+' meses',c:'nt'},
-    {l:'Média Mensal',v:fmtM(meanM),s:'por mês',c:'nt'},
+    {l:'Média Mensal',v:fmtM(meanM),s:nFechados+' meses fechados',c:'nt'},
     {l:'Mês Recente',v:fmtM(mom),s:(parseFloat(momPct)>=0?'↑':'↓')+' '+Math.abs(parseFloat(momPct))+'% vs anterior',c:parseFloat(momPct)>=0?'up':'dn'},
     {l:'Pico do Período',v:fmtM(maxM),s:mths[rev.indexOf(maxM)]||'',c:'nt'},
     {l:'Ticket Médio',v:fmtM(tot/EMPDATA.reduce((s,e)=>s+e.l,0)||1),s:'por lançamento',c:'nt'}
   ].map(k=>`<div class="kcard"><div class="klabel">${k.l}</div><div class="kval">${k.v}</div><div class="ksub ${k.c}">${k.s}</div></div>`).join('')
   + buildProjecaoCard(mom);
   document.getElementById('trend-tag').textContent=mths[0]+' → '+mths[mths.length-1];
-  // Detecta mês atual para destaque
-  const now=new Date();
-  const curMesStr=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
-  const curIdx=mths.findIndex(m=>m===curMesStr||m.replace('-','/')===curMesStr);
   const ptRadii=rev.map((_,i)=>i===curIdx?7:3);
   const ptBg=rev.map((_,i)=>i===curIdx?'#E8751A':'#fff');
   const ptBorder=rev.map((_,i)=>i===curIdx?'#E8751A':'#E8751A');
