@@ -644,8 +644,11 @@ function destroyAll(){Object.values(CH).forEach(c=>{try{c.destroy()}catch(e){}})
 const GRID='rgba(0,0,0,0.05)';
 const TXTC='#9ca3af';
 const baseOpts={responsive:true,maintainAspectRatio:false};
-// Registra plugin de datalabels globalmente
-if(window.ChartDataLabels)Chart.register(ChartDataLabels);
+// Registra plugin de datalabels globalmente mas desativado por padrão
+if(window.ChartDataLabels){
+  Chart.register(ChartDataLabels);
+  Chart.defaults.set('plugins.datalabels',{display:false});
+}
 function isDark(){return document.body.classList.contains('dark');}
 function gridColor(){return isDark()?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)';}
 function tickColor(){return isDark()?'#6b7a99':'#9ca3af';}
@@ -687,7 +690,8 @@ function renderOverview(){
     }]},
     options:{...baseOpts,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmt(v.raw)}},
-        datalabels:{display:true}},
+        datalabels:{display:true,clip:false}},
+      layout:{padding:{top:24}},
       scales:{x:{ticks:{font:{size:10},color:tickColor(),maxRotation:45,autoSkip:false},grid:{display:false}},
               y:{ticks:{font:{size:10},color:tickColor(),callback:v=>fmtM(v)},grid:{color:gridColor()}}}}
   });
