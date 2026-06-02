@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f9;color:#1a2340;min-height:100vh;transition:background .25s,color .25s}
@@ -644,11 +643,75 @@ function destroyAll(){Object.values(CH).forEach(c=>{try{c.destroy()}catch(e){}})
 const GRID='rgba(0,0,0,0.05)';
 const TXTC='#9ca3af';
 const baseOpts={responsive:true,maintainAspectRatio:false};
-// Registra plugin de datalabels globalmente mas desativado por padrão
-if(window.ChartDataLabels){
-  Chart.register(ChartDataLabels);
-  Chart.defaults.set('plugins.datalabels',{display:false});
-}
+// Plugin inline: rótulos no gráfico de linha
+const pluginTrendLabels={
+  id:'trendLabels',
+  afterDatasetsDraw(chart){
+    const {ctx,data,scales}=chart;
+    const ds=data.datasets[0];
+    if(!ds)return;
+    const meta=chart.getDatasetMeta(0);
+    const rev=ds.data;
+    const maxV=Math.max(...rev);
+    const lastIdx=rev.length-1;
+    // curIdx via chart option
+    const curIdx=chart.options._curIdx??-1;
+    meta.data.forEach((pt,i)=>{
+      const show=i===curIdx||rev[i]===maxV||i===lastIdx;
+      if(!show)return;
+      const x=pt.x,y=pt.y;
+      const label=fmtM(rev[i]);
+      const isCur=i===curIdx;
+      ctx.save();
+      ctx.font=`${isCur?'700':'600'} 10px -apple-system,sans-serif`;
+      ctx.fillStyle=isCur?'#E8751A':'#6b7a99';
+      ctx.textAlign='center';
+      ctx.textBaseline='bottom';
+      ctx.fillText(label,x,y-8);
+      // ponto de destaque no mês atual
+      if(isCur){
+        ctx.beginPath();
+        ctx.arc(x,y,6,0,Math.PI*2);
+        ctx.fillStyle='#E8751A';
+        ctx.fill();
+        ctx.strokeStyle='#fff';
+        ctx.lineWidth=2;
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+  }
+};
+
+// Plugin inline: rótulos no doughnut ARM vs LOG
+const pluginSplitLabels={
+  id:'splitLabels',
+  afterDatasetsDraw(chart){
+    if(!chart.options._splitLabels)return;
+    const {ctx,data}=chart;
+    const ds=data.datasets[0];
+    if(!ds||!ds.data.length)return;
+    const meta=chart.getDatasetMeta(0);
+    const tot=ds.data.reduce((a,b)=>a+b,0);
+    meta.data.forEach((arc,i)=>{
+      const {x,y}=arc.tooltipPosition();
+      const val=ds.data[i];
+      const lbl=data.labels[i]||'';
+      const pct=Math.round(val/tot*100)+'%';
+      ctx.save();
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillStyle='#fff';
+      ctx.font='700 11px -apple-system,sans-serif';
+      ctx.fillText(pct,x,y-7);
+      ctx.font='600 9px -apple-system,sans-serif';
+      ctx.fillText(fmtM(val),x,y+6);
+      ctx.restore();
+    });
+  }
+};
+
+Chart.register(pluginTrendLabels,pluginSplitLabels);
 function isDark(){return document.body.classList.contains('dark');}
 function gridColor(){return isDark()?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)';}
 function tickColor(){return isDark()?'#6b7a99':'#9ca3af';}
@@ -684,14 +747,11 @@ function renderOverview(){
   CH['trend']=new Chart(document.getElementById('c-trend'),{
     type:'line',
     data:{labels:mths,datasets:[{label:'Receita',data:rev,borderColor:'#E8751A',backgroundColor:'rgba(232,117,26,0.08)',fill:true,tension:0.35,
-      pointRadius:ptRadii,pointBorderColor:ptBorder,pointBackgroundColor:ptBg,pointBorderWidth:ptBorderW,pointHoverRadius:8,
-      datalabels:{align:'top',anchor:'end',formatter:v=>fmtM(v),font:{size:9,weight:'600'},color:rev.map((_,i)=>i===curIdx?'#E8751A':'#9ca3af'),
-        display:ctx=>ctx.dataIndex===curIdx||ctx.dataIndex===rev.indexOf(Math.max(...rev))||ctx.dataIndex===rev.length-1}
+      pointRadius:ptRadii,pointBorderColor:ptBorder,pointBackgroundColor:ptBg,pointBorderWidth:ptBorderW,pointHoverRadius:8
     }]},
-    options:{...baseOpts,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmt(v.raw)}},
-        datalabels:{display:true,clip:false}},
-      layout:{padding:{top:24}},
+    options:{...baseOpts,_curIdx:curIdx,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>fmt(v.raw)}},trendLabels:{}},
+      layout:{padding:{top:28}},
       scales:{x:{ticks:{font:{size:10},color:tickColor(),maxRotation:45,autoSkip:false},grid:{display:false}},
               y:{ticks:{font:{size:10},color:tickColor(),callback:v=>fmtM(v)},grid:{color:gridColor()}}}}
   });
@@ -710,12 +770,10 @@ function renderOverview(){
   if(ST.empresas.includes('LOG')&&logTot){lbs.push('LOG Santos');vals.push(logTot);cols.push('#1A4FA0');}
   CH['split']=new Chart(document.getElementById('c-split'),{
     type:'doughnut',
-    data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'#fff',
-      datalabels:{formatter:(v,ctx)=>{const tot2=vals.reduce((a,b)=>a+b,0);return lbs[ctx.dataIndex]+'\n'+fmtM(v)+'\n('+Math.round(v/tot2*100)+'%)';},
-        color:'#fff',font:{size:10,weight:'700'},textAlign:'center'}}]},
-    options:{...baseOpts,cutout:'55%',
+    data:{labels:lbs,datasets:[{data:vals,backgroundColor:cols,borderWidth:2,borderColor:'#fff'}]},
+    options:{...baseOpts,cutout:'55%',_splitLabels:true,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.label+': '+fmt(v.raw)+' ('+Math.round(v.raw/(armTot+logTot)*100)+'%)'}},
-        datalabels:{display:true}}}
+        splitLabels:{}}}
   });
   const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
   const maxR=filtC[0]?.r||1;
