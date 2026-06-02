@@ -218,7 +218,9 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 .hs-verde{background:#dcfce7;color:#15803d}
 .hs-amarelo{background:#fef9c3;color:#854d0e}
 .hs-vermelho{background:#fee2e2;color:#991b1b}
-.hs-sum-card{background:var(--sec);border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:100px}
+.hs-sort-btn{padding:3px 10px;font-size:10px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.hs-sort-btn.active{background:#1A4FA0;border-color:#1A4FA0;color:#fff}
+.hs-sort-btn:not(.active):hover{border-color:#1A4FA0;color:#1A4FA0}
 .hs-sum-n{font-size:22px;font-weight:700}
 .hs-sum-l{font-size:11px;color:var(--txt2);margin-top:2px}
 /* FORECAST */
@@ -419,7 +421,15 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
   <div class="cc">
     <div class="ctitle">
       Score de Saúde dos Clientes
-      <span class="ctag">RFV — Recência · Frequência · Valor</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="ctag">RFV — Recência · Frequência · Valor</span>
+        <button class="hs-sort-btn active" id="hs-sort-asc" onclick="hsSetSort('desc')" title="Melhor → Pior">
+          <i class="ti ti-sort-descending-numbers"></i> Melhor → Pior
+        </button>
+        <button class="hs-sort-btn" id="hs-sort-desc" onclick="hsSetSort('asc')" title="Pior → Melhor">
+          <i class="ti ti-sort-ascending-numbers"></i> Pior → Melhor
+        </button>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap" id="hs-summary"></div>
     <div id="hs-table"></div>
@@ -1937,6 +1947,15 @@ function buildHealthScores(){
   }).sort((a,b)=>b.score-a.score);
 }
 
+let HS_SORT='desc'; // desc = melhor→pior, asc = pior→melhor
+
+function hsSetSort(order){
+  HS_SORT=order;
+  document.getElementById('hs-sort-asc')?.classList.toggle('active', order==='desc');
+  document.getElementById('hs-sort-desc')?.classList.toggle('active', order==='asc');
+  renderHealthScore();
+}
+
 function renderHealthScore(){
   const filtC=ST.empresas.length<2
     ?HEALTH_SCORES.filter(c=>ST.empresas.includes(c.e))
@@ -1957,8 +1976,13 @@ function renderHealthScore(){
     <div class="hs-sum-l">${s.l}</div>
   </div>`).join('');
 
+  // Aplica ordenação
+  const sorted=HS_SORT==='desc'
+    ?[...filtC].sort((a,b)=>b.score-a.score)
+    :[...filtC].sort((a,b)=>a.score-b.score);
+
   // Tabela
-  const rows=filtC.slice(0,25);
+  const rows=sorted.slice(0,30);
   const tbl=document.getElementById('hs-table');
   tbl.innerHTML=`
   <div class="hs-row header">
