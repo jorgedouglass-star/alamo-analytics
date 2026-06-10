@@ -230,6 +230,164 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 .fc-card-val{font-size:16px;font-weight:700;color:var(--txt)}
 .fc-card-range{font-size:10px;color:var(--txt2);margin-top:2px}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style id="alamo-redesign">
+/* ============================================================
+   ÁLAMO REDESIGN — "Sala de Comando do Porto"
+   Tipografia industrial + números monoespaçados + briefing
+   ============================================================ */
+:root{
+  --or:#E8751A;--or2:#FF9142;--nv:#0A1424;
+  --bg:#E9EDF3;--card:#FFFFFF;--bdr:rgba(14,27,51,0.10);
+  --txt:#0E1B33;--txt2:#5B6B8C;--sec:#EFF2F7;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --disp:'Archivo','Segoe UI',sans-serif;
+}
+body{font-family:var(--disp);background:var(--bg);font-variant-numeric:tabular-nums;letter-spacing:.1px}
+body.dark{background:#070D18;--nv:#050A14;--card:#0E1726;--bg:#070D18;--bdr:rgba(255,255,255,0.07);--txt:#E6ECF6;--txt2:#8395B5;--sec:#0A1220}
+::selection{background:rgba(232,117,26,.25)}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-thumb{background:rgba(120,135,165,.35);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-track{background:transparent}
+:is(button,input,a):focus-visible{outline:2px solid var(--or);outline-offset:2px;border-radius:6px}
+
+/* —— textura de grão sutil sobre o fundo —— */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.app{position:relative;z-index:1}
+
+/* —— HEADER: ponte de comando —— */
+.hdr{background:linear-gradient(135deg,#060C18 0%,#0B1B36 55%,#0E2348 100%);min-height:66px;border-bottom:1px solid rgba(232,117,26,.35);box-shadow:0 6px 28px rgba(4,10,22,.45);position:sticky}
+.hdr::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--or) 18%,var(--or2) 50%,var(--or) 82%,transparent);opacity:.85;pointer-events:none}
+.logo-text{font-family:var(--disp);font-weight:800;letter-spacing:2.5px;font-size:16px}
+.logo-sub{letter-spacing:1.2px;text-transform:uppercase;font-size:9px}
+.hdr-badge{font-family:var(--mono);font-weight:600;letter-spacing:.3px;background:rgba(232,117,26,.12);border-color:rgba(232,117,26,.4)}
+.hdr-date{font-family:var(--mono)}
+
+/* botões novos do header (injetados via JS) */
+.hx-btn{display:inline-flex;align-items:center;gap:6px;border-radius:9px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s;border:none;font-family:var(--disp);letter-spacing:.3px}
+.hx-btn:active{transform:scale(.96)}
+.hx-present{background:linear-gradient(120deg,var(--or),var(--or2));color:#fff;box-shadow:0 4px 16px rgba(232,117,26,.45)}
+.hx-present:hover{box-shadow:0 6px 22px rgba(232,117,26,.65);transform:translateY(-1px)}
+.hx-kbd{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.75)}
+.hx-kbd:hover{border-color:rgba(232,117,26,.6);color:#FF9142}
+.hx-kbd kbd{font-family:var(--mono);font-size:9px;background:rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;border:1px solid rgba(255,255,255,.18)}
+
+/* —— LOADING: cais à noite —— */
+#loading-overlay{background:radial-gradient(120% 140% at 50% 0%,#0E2348 0%,#070D18 70%)}
+.loader-txt{font-family:var(--disp);font-weight:800;letter-spacing:3px;text-transform:uppercase;font-size:15px}
+.loader-sub{font-family:var(--mono);font-size:11px}
+.loader-ring{border-width:3px;border-color:rgba(232,117,26,.18);border-top-color:var(--or)}
+
+/* —— FILTROS —— */
+.filter-bar{box-shadow:none;border-bottom:1px solid var(--bdr)}
+.filter-label{font-family:var(--mono);font-size:9px;letter-spacing:1px}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.4px;border-radius:8px}
+.pill.on{box-shadow:0 2px 10px rgba(232,117,26,.35)}
+.dd-btn{font-family:var(--mono);font-size:10px;border-radius:8px}
+.filter-summary{background:transparent;border-bottom:1px solid var(--bdr)}
+.fs-tag{font-family:var(--mono);font-size:10px;border-radius:6px}
+body.dark .filter-summary{background:transparent}
+
+/* —— ABAS: sinalização de pátio —— */
+.tabs{gap:2px}
+.tb{font-family:var(--disp);text-transform:uppercase;font-size:10.5px;letter-spacing:1.1px;font-weight:700;padding:14px 16px;position:relative;border-bottom-width:2px}
+.tb.on{border-bottom-color:transparent}
+.tb.on::after{content:'';position:absolute;left:14px;right:14px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,var(--or),var(--or2));box-shadow:0 -2px 10px rgba(232,117,26,.5)}
+.tb-ia-badge{border-radius:4px}
+
+/* —— KPI CARDS: mostradores de instrumento —— */
+.kcard{border-top:1px solid var(--bdr);border-radius:14px;transition:transform .2s,box-shadow .2s;box-shadow:0 1px 3px rgba(10,20,40,.06)}
+.kcard::after{content:none}
+.kcard:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(10,20,40,.12)}
+.klabel{font-family:var(--mono);font-size:9px;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.klabel::before{content:'';width:3px;height:10px;background:var(--or);border-radius:2px;flex-shrink:0}
+.kval{font-family:var(--mono);font-weight:700;font-size:23px;letter-spacing:-.5px}
+.ksub{font-family:var(--mono);font-size:10px}
+
+/* —— CARDS DE GRÁFICO —— */
+.cc{border-radius:14px;box-shadow:0 1px 3px rgba(10,20,40,.06)}
+.ctitle{font-family:var(--disp);font-weight:700;letter-spacing:.2px}
+.ctag{font-family:var(--mono);font-size:9px;letter-spacing:.4px;border-radius:6px}
+.cl-rank{font-family:var(--mono)}
+.cl-val,.pval,.fc-card-val,.hs-sum-n,.erev,#gauge-pct,#meta-realizado-val{font-family:var(--mono);letter-spacing:-.3px}
+.pz-tbl td,.pz-tbl th{font-family:var(--mono);font-size:10.5px}
+.pz-tbl th{font-family:var(--disp)}
+.ename{font-family:var(--disp)}
+.avatar{font-family:var(--mono)}
+
+/* —— entrada animada das seções —— */
+@keyframes hxRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.sec.on>*{animation:hxRise .45s cubic-bezier(.2,.7,.3,1) both}
+.sec.on>*:nth-child(2){animation-delay:.06s}
+.sec.on>*:nth-child(3){animation-delay:.12s}
+.sec.on>*:nth-child(4){animation-delay:.18s}
+.sec.on>*:nth-child(5){animation-delay:.24s}
+
+/* —— CHAT —— */
+.chat-hdr{background:linear-gradient(120deg,#0B1B36,#0E2348);font-family:var(--disp);letter-spacing:.4px}
+.msg-user{border-radius:14px 14px 4px 14px}
+.msg-ai{border-radius:14px 14px 14px 4px}
+
+/* ============================================================
+   PALETA DE COMANDO  (Ctrl/⌘ + K)
+   ============================================================ */
+#hx-palette{position:fixed;inset:0;z-index:3000;display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 0;background:rgba(5,10,20,.55);backdrop-filter:blur(6px)}
+#hx-palette.open{display:flex}
+.hxp-box{width:100%;max-width:560px;background:var(--card);border:1px solid var(--bdr);border-radius:16px;box-shadow:0 32px 80px rgba(4,10,22,.5);overflow:hidden;animation:hxRise .22s cubic-bezier(.2,.7,.3,1)}
+.hxp-inp{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--bdr)}
+.hxp-inp i{color:var(--or);font-size:16px}
+.hxp-inp input{flex:1;border:none;background:transparent;font-size:14px;color:var(--txt);font-family:var(--disp);outline:none}
+.hxp-inp kbd{font-family:var(--mono);font-size:9px;color:var(--txt2);border:1px solid var(--bdr);border-radius:5px;padding:2px 6px}
+.hxp-list{max-height:46vh;overflow-y:auto;padding:8px}
+.hxp-group{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--txt2);padding:8px 12px 4px}
+.hxp-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:12.5px;color:var(--txt)}
+.hxp-item i{color:var(--txt2);font-size:15px;width:18px;text-align:center}
+.hxp-item.sel{background:linear-gradient(120deg,rgba(232,117,26,.14),rgba(232,117,26,.06))}
+.hxp-item.sel i{color:var(--or)}
+.hxp-item small{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--txt2)}
+.hxp-empty{padding:22px;text-align:center;font-size:12px;color:var(--txt2)}
+.hxp-foot{display:flex;gap:14px;padding:9px 16px;border-top:1px solid var(--bdr);font-family:var(--mono);font-size:9px;color:var(--txt2)}
+.hxp-foot kbd{border:1px solid var(--bdr);border-radius:4px;padding:0 5px;margin-right:4px}
+
+/* ============================================================
+   MODO BRIEFING  (apresentação executiva em tela cheia)
+   ============================================================ */
+#hx-brief{position:fixed;inset:0;z-index:4000;display:none;background:radial-gradient(130% 150% at 50% -10%,#10294F 0%,#0A1830 45%,#060C18 100%);color:#fff;user-select:none}
+#hx-brief.open{display:block}
+#hx-brief::before{content:'';position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .03 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.hxb-progress{position:absolute;top:0;left:0;right:0;display:flex;gap:5px;padding:14px 18px;z-index:5}
+.hxb-pbar{flex:1;height:3px;background:rgba(255,255,255,.18);border-radius:2px;overflow:hidden}
+.hxb-pfill{height:100%;width:0%;background:linear-gradient(90deg,var(--or),var(--or2));border-radius:2px}
+.hxb-close{position:absolute;top:30px;right:20px;z-index:6;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.hxb-close:hover{background:rgba(232,117,26,.4)}
+.hxb-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 8vw;gap:18px}
+.hxb-kicker{font-family:var(--mono);font-size:clamp(10px,1.4vw,13px);letter-spacing:4px;text-transform:uppercase;color:var(--or2);animation:hxRise .5s both}
+.hxb-big{font-family:var(--mono);font-weight:700;font-size:clamp(44px,11vw,128px);line-height:.95;letter-spacing:-3px;background:linear-gradient(180deg,#fff 30%,#9FB4D8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:hxRise .55s .08s both}
+.hxb-title{font-family:var(--disp);font-weight:800;font-size:clamp(26px,5.5vw,58px);letter-spacing:.5px;line-height:1.05;animation:hxRise .55s .08s both}
+.hxb-sub{font-family:var(--disp);font-size:clamp(13px,1.8vw,18px);color:rgba(255,255,255,.7);max-width:620px;line-height:1.7;animation:hxRise .55s .18s both}
+.hxb-chip{font-family:var(--mono);font-size:clamp(10px,1.3vw,12px);border:1px solid rgba(232,117,26,.5);color:var(--or2);border-radius:20px;padding:5px 14px;letter-spacing:1px;animation:hxRise .55s .26s both}
+.hxb-split{display:flex;width:min(560px,80vw);height:14px;border-radius:8px;overflow:hidden;animation:hxRise .55s .2s both;box-shadow:0 0 30px rgba(232,117,26,.25)}
+.hxb-split>div{height:100%;transition:width 1s cubic-bezier(.2,.7,.3,1)}
+.hxb-legend{display:flex;gap:26px;font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.85);animation:hxRise .55s .3s both}
+.hxb-legend b{font-size:16px}
+.hxb-hint{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.35)}
+.hxb-nav{position:absolute;top:0;bottom:0;width:34%;z-index:4;cursor:pointer}
+.hxb-nav.prev{left:0}.hxb-nav.next{right:0;width:66%}
+
+@media(max-width:768px){
+  .hx-btn span.hx-lbl{display:none}
+  .hx-btn{padding:7px 10px}
+  .kval{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sec.on>*,.hxb-kicker,.hxb-big,.hxb-title,.hxb-sub,.hxb-chip,.hxb-split,.hxb-legend,.hxp-box{animation:none!important}
+  .kcard:hover{transform:none}
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -2214,6 +2372,267 @@ function toggleTheme(){
       if(lb)lb.textContent='Escuro';
     });
   }
+})();
+
+// ============================================================
+// ÁLAMO X — Experiência diferenciada
+// (count-up dos KPIs · paleta de comando ⌘K · modo briefing)
+// Camada aditiva: não altera nenhuma lógica original.
+// ============================================================
+(function(){
+const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 1. COUNT-UP automático dos números de KPI ---------- */
+function animateNumber(el){
+  if(REDUCED)return;
+  const final=el.textContent;
+  // anima apenas alvos com um número inteiro pt-BR simples (sem vírgula decimal)
+  const m=final.match(/^([^\d\-]*)(-?[\d.]{1,15})([^]*)$/);
+  if(!m||/,/.test(m[2]))return;
+  const target=parseInt(m[2].replace(/\./g,''),10);
+  if(isNaN(target)||Math.abs(target)<2)return;
+  const t0=performance.now(),dur=650;
+  function frame(t){
+    const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
+    el.textContent=m[1]+Math.round(target*e).toLocaleString('pt-BR')+m[3];
+    if(p<1)requestAnimationFrame(frame);else el.textContent=final;
+  }
+  requestAnimationFrame(frame);
+}
+new MutationObserver(muts=>{
+  const seen=new Set();
+  muts.forEach(mu=>{
+    const root=mu.target.nodeType===1?mu.target:mu.target.parentElement;
+    if(!root)return;
+    (root.classList&&root.classList.contains('kval')?[root]:root.querySelectorAll?[...root.querySelectorAll('.kval')]:[])
+      .forEach(el=>{if(!seen.has(el)){seen.add(el);animateNumber(el);}});
+  });
+}).observe(document.body,{childList:true,subtree:true});
+
+/* ---------- 2. Botões novos no header ---------- */
+const hdrRight=document.querySelector('.hdr-right');
+if(hdrRight){
+  const isMac=/Mac/i.test(navigator.platform);
+  hdrRight.insertAdjacentHTML('afterbegin',
+    `<button class="hx-btn hx-present" onclick="hxBriefStart()" title="Apresentação executiva em tela cheia">
+       <i class="ti ti-player-play-filled"></i> <span class="hx-lbl">Apresentar</span>
+     </button>
+     <button class="hx-btn hx-kbd" onclick="hxPaletteOpen()" title="Paleta de comando">
+       <i class="ti ti-command"></i> <span class="hx-lbl">Buscar</span> <kbd>${isMac?'⌘':'Ctrl'} K</kbd>
+     </button>`);
+}
+
+/* ---------- 3. PALETA DE COMANDO ---------- */
+document.body.insertAdjacentHTML('beforeend',`
+<div id="hx-palette" role="dialog" aria-label="Paleta de comando">
+  <div class="hxp-box">
+    <div class="hxp-inp">
+      <i class="ti ti-search"></i>
+      <input id="hxp-input" type="text" placeholder="Navegar, buscar cliente ou perguntar à IA..." autocomplete="off">
+      <kbd>ESC</kbd>
+    </div>
+    <div class="hxp-list" id="hxp-list"></div>
+    <div class="hxp-foot"><span><kbd>↑↓</kbd>navegar</span><span><kbd>↵</kbd>executar</span><span><kbd>Esc</kbd>fechar</span></div>
+  </div>
+</div>`);
+
+const PALETTE_STATIC=[
+  {g:'Navegar',icon:'ti-layout-dashboard',label:'Visão Geral',run:()=>switchTab('overview')},
+  {g:'Navegar',icon:'ti-users',label:'Clientes',run:()=>switchTab('clientes')},
+  {g:'Navegar',icon:'ti-package',label:'Produtos',run:()=>switchTab('produtos')},
+  {g:'Navegar',icon:'ti-clock-dollar',label:'Prazos',run:()=>switchTab('prazos')},
+  {g:'Navegar',icon:'ti-users-group',label:'Operacional',run:()=>switchTab('operacional')},
+  {g:'Navegar',icon:'ti-sparkles',label:'IA + Chat',run:()=>switchTab('ia')},
+  {g:'Ações',icon:'ti-player-play-filled',label:'Iniciar modo briefing',hint:'apresentação',run:()=>hxBriefStart()},
+  {g:'Ações',icon:'ti-target',label:'Configurar meta do mês',run:()=>{switchTab('overview');openMetaModal();}},
+  {g:'Ações',icon:'ti-file-type-pdf',label:'Exportar relatório PDF',run:()=>exportPDF()},
+  {g:'Ações',icon:'ti-refresh',label:'Atualizar dados da planilha',run:()=>reloadData()},
+  {g:'Ações',icon:'ti-moon-stars',label:'Alternar tema claro/escuro',run:()=>toggleTheme()},
+];
+let hxpSel=0,hxpItems=[];
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function hxpBuild(q){
+  q=norm(q.trim());
+  let items=PALETTE_STATIC.filter(it=>!q||norm(it.label).includes(q));
+  // clientes (dados reais carregados)
+  if(q.length>=2&&typeof CLIENTS!=='undefined'){
+    CLIENTS.filter(c=>norm(c.n).includes(q)).slice(0,5).forEach(c=>{
+      items.push({g:'Clientes',icon:'ti-building-warehouse',label:c.n,hint:fmtM(c.r),
+        run:()=>{switchTab('ia');const inp=document.getElementById('chat-input');
+          inp.value=`Analise o cliente ${c.n}: evolução de receita, riscos e oportunidades.`;inp.focus();}});
+    });
+  }
+  if(q.length>=3)items.push({g:'Inteligência Artificial',icon:'ti-message-chatbot',
+    label:`Perguntar à IA: “${q}”`,run:()=>{switchTab('ia');
+      const inp=document.getElementById('chat-input');inp.value=q;sendMsg();}});
+  hxpItems=items;hxpSel=0;hxpRender();
+}
+function hxpRender(){
+  const list=document.getElementById('hxp-list');
+  if(!hxpItems.length){list.innerHTML='<div class="hxp-empty">Nada encontrado. Digite 3+ letras para perguntar à IA.</div>';return;}
+  let html='',lastG='';
+  hxpItems.forEach((it,i)=>{
+    if(it.g!==lastG){html+=`<div class="hxp-group">${it.g}</div>`;lastG=it.g;}
+    html+=`<div class="hxp-item ${i===hxpSel?'sel':''}" data-i="${i}">
+      <i class="ti ${it.icon}"></i><span>${it.label}</span>${it.hint?`<small>${it.hint}</small>`:''}</div>`;
+  });
+  list.innerHTML=html;
+  list.querySelectorAll('.hxp-item').forEach(el=>{
+    el.onclick=()=>hxpExec(+el.dataset.i);
+    el.onmousemove=()=>{hxpSel=+el.dataset.i;list.querySelectorAll('.hxp-item').forEach(x=>x.classList.toggle('sel',+x.dataset.i===hxpSel));};
+  });
+  const sel=list.querySelector('.hxp-item.sel');if(sel&&sel.scrollIntoView)sel.scrollIntoView({block:'nearest'});
+}
+function hxpExec(i){const it=hxpItems[i];if(!it)return;hxPaletteClose();setTimeout(()=>it.run(),60);}
+window.hxPaletteOpen=function(){
+  document.getElementById('hx-palette').classList.add('open');
+  const inp=document.getElementById('hxp-input');inp.value='';hxpBuild('');inp.focus();
+};
+function hxPaletteClose(){document.getElementById('hx-palette').classList.remove('open');}
+document.getElementById('hx-palette').addEventListener('click',e=>{if(e.target.id==='hx-palette')hxPaletteClose();});
+document.getElementById('hxp-input').addEventListener('input',e=>hxpBuild(e.target.value));
+document.getElementById('hxp-input').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();hxpSel=Math.min(hxpItems.length-1,hxpSel+1);hxpRender();}
+  else if(e.key==='ArrowUp'){e.preventDefault();hxpSel=Math.max(0,hxpSel-1);hxpRender();}
+  else if(e.key==='Enter'){e.preventDefault();hxpExec(hxpSel);}
+  else if(e.key==='Escape')hxPaletteClose();
+});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();
+    document.getElementById('hx-palette').classList.contains('open')?hxPaletteClose():hxPaletteOpen();}
+});
+
+/* ---------- 4. MODO BRIEFING (apresentação executiva) ---------- */
+document.body.insertAdjacentHTML('beforeend',`
+<div id="hx-brief" role="dialog" aria-label="Modo briefing">
+  <div class="hxb-progress" id="hxb-progress"></div>
+  <button class="hxb-close" onclick="hxBriefStop()" title="Fechar (Esc)"><i class="ti ti-x"></i></button>
+  <div id="hxb-stage"></div>
+  <div class="hxb-nav prev" onclick="hxBriefNav(-1)"></div>
+  <div class="hxb-nav next" onclick="hxBriefNav(1)"></div>
+  <div class="hxb-hint">CLIQUE OU USE ← → PARA NAVEGAR · ESC PARA SAIR · SEGURE PARA PAUSAR</div>
+</div>`);
+
+let hxbSlides=[],hxbIdx=0,hxbTimer=null,hxbStart=0,hxbElapsed=0,hxbPaused=false;
+const HXB_DUR=6500;
+
+function hxBriefBuild(){
+  const idxs=getSelectedIndices();
+  const rev=getRevSlice();
+  const months=getMonths();
+  const total=sum(rev);
+  const periodo=months.length?(months[0]+' – '+months[months.length-1]):'sem dados';
+  const empresas=ST.empresas.length===2?'ARM 262 + LOG Santos':(ST.empresas[0]==='ARM'?'ARM 262':'LOG Santos');
+  const S=[];
+  S.push({kicker:'Briefing executivo',title:'Álamo Analytics',
+    sub:'Inteligência de receita · Santos, SP',chip:periodo+' · '+empresas});
+  // comparação com janela anterior de mesmo tamanho
+  let cmp='';
+  if(idxs.length&&idxs[0]>=idxs.length){
+    const arr=ST.empresas.length===2?M.total:ST.empresas.includes('ARM')?M.ARM:M.LOG;
+    const prev=sum(idxs.map(i=>arr[i-idxs.length]||0));
+    if(prev>0){const d=((total-prev)/prev*100);cmp=(d>=0?'▲ +':'▼ ')+d.toFixed(1)+'% vs período anterior';}
+  }
+  S.push({kicker:'Receita no período',big:fmtM(total),
+    sub:`${idxs.length} ${idxs.length===1?'mês consolidado':'meses consolidados'} · média de ${fmtM(avg(rev))}/mês`,
+    chip:cmp||periodo});
+  if(rev.length>1){
+    let bi=0;rev.forEach((v,i)=>{if(v>rev[bi])bi=i;});
+    S.push({kicker:'Pico de faturamento',big:fmtM(rev[bi]),
+      sub:'O melhor mês do período foi '+months[bi]+', respondendo por '+(total?(rev[bi]/total*100).toFixed(1):0)+'% da receita selecionada.',chip:months[bi]});
+  }
+  const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
+  if(filtC.length){
+    const c=filtC[0],share=total?(c.r/total*100):0;
+    S.push({kicker:'Cliente nº 1',title:c.n,
+      sub:fmtM(c.r)+' em receita · ticket médio de '+fmt(c.t)+' · '+c.l+' lançamentos',
+      chip:share.toFixed(1)+'% de participação'});
+  }
+  if(ST.empresas.length===2){
+    const a=sum(idxs.map(i=>M.ARM[i]||0)),l=sum(idxs.map(i=>M.LOG[i]||0)),t=a+l||1;
+    S.push({kicker:'Mix por empresa',title:'ARM 262 × LOG Santos',
+      split:[{c:'#E8751A',w:a/t*100},{c:'#1A4FA0',w:l/t*100}],
+      legend:[{c:'#E8751A',l:'ARM',v:(a/t*100).toFixed(0)+'%'},{c:'#1A4FA0',l:'LOG',v:(l/t*100).toFixed(0)+'%'}],
+      sub:'ARM '+fmtM(a)+' · LOG '+fmtM(l)});
+  }
+  if(EMPDATA.length){
+    const ranked=EMPDATA.map(e=>({...e,sel:sum(getEmpSlice(e.id))})).sort((x,y)=>y.sel-x.sel);
+    const e=ranked[0];
+    if(e&&e.sel>0)S.push({kicker:'Destaque da equipe',title:e.full,
+      sub:(e.role?e.role+' · ':'')+fmtM(e.sel)+' faturados no período · '+(total?(e.sel/total*100).toFixed(1):0)+'% do total',
+      chip:'Top performer'});
+  }
+  if(rev.length>=3){
+    const w=rev.slice(-3),fc=(w[0]*0.2+w[1]*0.3+w[2]*0.5);
+    S.push({kicker:'Projeção simplificada',big:fmtM(fc),
+      sub:'Estimativa para o próximo mês por média ponderada dos três últimos. Faixa de confiança: '+fmtM(fc*0.85)+' a '+fmtM(fc*1.15)+'.',
+      chip:'± 15%'});
+  }
+  const now=new Date();
+  S.push({kicker:'Fim do briefing',title:'Decida com dados.',
+    sub:'Gerado em '+now.toLocaleDateString('pt-BR')+' às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' · filtros: '+periodo+' · '+empresas,
+    chip:'ÁLAMO ANALYTICS'});
+  return S;
+}
+function hxbRender(){
+  const s=hxbSlides[hxbIdx],st=document.getElementById('hxb-stage');
+  let inner='<div class="hxb-slide">';
+  if(s.kicker)inner+=`<div class="hxb-kicker">${s.kicker}</div>`;
+  if(s.big)inner+=`<div class="hxb-big" data-hxb-count>${s.big}</div>`;
+  if(s.title)inner+=`<div class="hxb-title">${s.title}</div>`;
+  if(s.split){inner+=`<div class="hxb-split">${s.split.map(p=>`<div style="background:${p.c};width:0%"></div>`).join('')}</div>`;
+    inner+=`<div class="hxb-legend">${s.legend.map(g=>`<span><span class="sw" style="background:${g.c};width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:6px"></span>${g.l} <b>${g.v}</b></span>`).join('')}</div>`;}
+  if(s.sub)inner+=`<div class="hxb-sub">${s.sub}</div>`;
+  if(s.chip)inner+=`<div class="hxb-chip">${s.chip}</div>`;
+  inner+='</div>';
+  st.innerHTML=inner;
+  if(s.split)requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    st.querySelectorAll('.hxb-split>div').forEach((d,i)=>d.style.width=s.split[i].w+'%');}));
+  const big=st.querySelector('[data-hxb-count]');if(big)animateNumber(big);
+  // progress
+  document.getElementById('hxb-progress').innerHTML=
+    hxbSlides.map((_,i)=>`<div class="hxb-pbar"><div class="hxb-pfill" id="hxb-pf-${i}" style="width:${i<hxbIdx?100:0}%"></div></div>`).join('');
+  hxbStart=performance.now();hxbElapsed=0;
+}
+function hxbTick(t){
+  if(!document.getElementById('hx-brief').classList.contains('open'))return;
+  if(!hxbPaused){
+    const el=hxbElapsed+(t-hxbStart);
+    const pf=document.getElementById('hxb-pf-'+hxbIdx);
+    if(pf)pf.style.width=Math.min(100,el/HXB_DUR*100)+'%';
+    if(el>=HXB_DUR){
+      if(hxbIdx<hxbSlides.length-1){hxbIdx++;hxbRender();}
+      else{hxBriefStop();return;}
+    }
+  }
+  hxbTimer=requestAnimationFrame(hxbTick);
+}
+window.hxBriefStart=function(){
+  if(typeof MONTHS==='undefined'||!MONTHS.length){alert('Aguarde o carregamento dos dados.');return;}
+  hxbSlides=hxBriefBuild();hxbIdx=0;hxbPaused=false;
+  document.getElementById('hx-brief').classList.add('open');
+  document.documentElement.requestFullscreen?.().catch(()=>{});
+  hxbRender();cancelAnimationFrame(hxbTimer);hxbTimer=requestAnimationFrame(hxbTick);
+};
+window.hxBriefStop=function(){
+  document.getElementById('hx-brief').classList.remove('open');
+  cancelAnimationFrame(hxbTimer);
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+};
+window.hxBriefNav=function(d){
+  const n=hxbIdx+d;
+  if(n<0)return;if(n>=hxbSlides.length){hxBriefStop();return;}
+  hxbIdx=n;hxbRender();
+};
+const briefEl=document.getElementById('hx-brief');
+briefEl.addEventListener('pointerdown',()=>{hxbPaused=true;hxbElapsed+=performance.now()-hxbStart;});
+briefEl.addEventListener('pointerup',()=>{hxbPaused=false;hxbStart=performance.now();});
+document.addEventListener('keydown',e=>{
+  if(!briefEl.classList.contains('open'))return;
+  if(e.key==='Escape')hxBriefStop();
+  else if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();hxBriefNav(1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();hxBriefNav(-1);}
+});
 })();
 
 // ============================================================
