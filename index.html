@@ -1407,13 +1407,24 @@ function pzRenderKPIs(){
   if(!clientes.length)return;
   const totQ=clientes.reduce((s,c)=>s+c.qtd,0);
   const prazoMed=totQ?clientes.reduce((s,c)=>s+c.med*c.qtd,0)/totQ:0;
+
+  // Prazo ponderado por valor (R$) — filtra empresa ativa
+  const rows=(PRAZO_DATA.rows||[]).filter(r=>
+    ST.empresas.length<2?(ST.empresas.includes('ARM')?isARM(r.empresa):!isARM(r.empresa)):true
+  );
+  const totalVal=rows.reduce((s,r)=>s+r.valor,0);
+  const prazoMedVal=totalVal>0
+    ?rows.reduce((s,r)=>s+r.prazo*r.valor,0)/totalVal
+    :0;
+
   const maxC=clientes.reduce((m,c)=>c.max>m.max?c:m,clientes[0]);
   const tEnd=mensal.length?mensal[mensal.length-1].prazo:prazoMed;
   const tStart=mensal.length?mensal[0].prazo:prazoMed;
   const tDelta=tEnd-tStart;
   const rising=clientes.filter(c=>c.delta!==null&&c.delta>2).length;
   document.getElementById('pz-kpis').innerHTML=[
-    {l:'Prazo médio concedido',v:prazoMed.toFixed(1)+'d',s:'ponderado por faturas',c:'nt'},
+    {l:'Prazo médio concedido',v:prazoMed.toFixed(1)+'d',s:'ponderado por nº de faturas',c:'nt'},
+    {l:'Prazo médio por valor (R$)',v:prazoMedVal.toFixed(1)+'d',s:'ponderado pelo faturamento',c:'nt'},
     {l:'Maior prazo ativo',v:maxC.max+'d',s:maxC.cliente.split(' ')[0],c:'dn'},
     {l:'Tendência do período',v:(tDelta>=0?'+':'')+tDelta.toFixed(1)+'d',s:tDelta>0?'⬆ prazos crescendo':'⬇ prazos reduzindo',c:tDelta>2?'dn':tDelta<-2?'up':'nt'},
     {l:'Clientes c/ prazo subindo',v:rising,s:'aumento >2d vs 2025',c:rising>3?'dn':'nt'}
