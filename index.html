@@ -207,7 +207,73 @@ body.dark input[type=checkbox]{accent-color:#E8751A}
 body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
 .meta-sug{padding:4px 12px;font-size:11px;font-weight:600;border:1px solid var(--bdr);border-radius:20px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .15s}
 .meta-sug:hover{background:#E8751A;border-color:#E8751A;color:#fff}
-/* HEALTH SCORE */
+/* BRIEFING */
+#br-overlay{display:none;position:fixed;inset:0;z-index:9999;background:#0D1B2E;flex-direction:column}
+#br-overlay.open{display:flex}
+.br-header{height:56px;background:#0a1520;display:flex;align-items:center;padding:0 40px;gap:16px;flex-shrink:0;border-bottom:1px solid rgba(46,196,182,0.2)}
+.br-logo-text{font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase}
+.br-divider{width:1px;height:20px;background:rgba(255,255,255,0.1)}
+.br-periodo{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:.5px}
+.br-close{margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.4);border-radius:6px;padding:4px 12px;cursor:pointer;font-size:11px;transition:all .15s}
+.br-close:hover{border-color:rgba(255,255,255,0.4);color:#fff}
+.br-progress{height:3px;background:rgba(255,255,255,0.06);display:flex;flex-shrink:0}
+.br-pbar{flex:1;position:relative;overflow:hidden}
+.br-pfill{height:100%;background:#2EC4B6;width:0%;transition:width .1s linear}
+.br-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;position:relative;overflow:hidden}
+.br-nav{position:absolute;top:0;bottom:56px;width:80px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:24px;color:rgba(255,255,255,0.5)}
+.br-nav:hover{opacity:1;background:rgba(255,255,255,0.04)}
+.br-nav.prev{left:0}
+.br-nav.next{right:0}
+.br-footer{height:56px;background:#0a1520;display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:8px;font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:1px;text-transform:uppercase;border-top:1px solid rgba(46,196,182,0.15)}
+/* Slide types */
+.br-slide{width:100%;max-width:900px;animation:brIn .35s ease}
+@keyframes brIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+/* Capa */
+.br-capa{min-height:320px;display:flex;flex-direction:column;justify-content:flex-end}
+.br-accent-bar{width:5px;background:#2EC4B6;border-radius:3px;align-self:stretch;flex-shrink:0}
+.br-capa-inner{display:flex;gap:24px;align-items:flex-end}
+.br-capa-title{font-size:clamp(32px,4vw,52px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-1px;text-transform:uppercase}
+.br-capa-sub{font-size:14px;color:#2EC4B6;margin-top:12px;font-weight:500;letter-spacing:.5px}
+.br-capa-footer{margin-top:32px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center}
+.br-capa-company{font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase}
+.br-capa-date{font-size:11px;color:rgba(255,255,255,0.25)}
+/* Slide padrão */
+.br-slide-hdr{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid rgba(46,196,182,0.25)}
+.br-slide-icon{width:36px;height:36px;border-radius:10px;background:rgba(46,196,182,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;color:#2EC4B6;flex-shrink:0}
+.br-slide-title{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.3px}
+/* KPI grid */
+.br-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.br-kpi{border-left:3px solid #2EC4B6;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:0 8px 8px 0}
+.br-kpi-val{font-size:28px;font-weight:800;color:#fff;line-height:1.1}
+.br-kpi-lbl{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+.br-kpi-sub{font-size:11px;color:#2EC4B6;margin-top:4px;font-weight:500}
+/* Two col */
+.br-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.br-box{background:rgba(255,255,255,0.04);border-radius:8px;padding:16px 20px;border:1px solid rgba(255,255,255,0.07)}
+.br-box-title{font-size:11px;font-weight:700;color:#2EC4B6;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.br-list-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px;color:rgba(255,255,255,0.7)}
+.br-list-row:last-child{border-bottom:none}
+.br-list-val{font-weight:700;color:#fff}
+.br-list-num{font-size:11px;color:rgba(255,255,255,0.35);margin-right:8px}
+/* Insight */
+.br-insight{border-left:3px solid;padding:14px 18px;border-radius:0 8px 8px 0;background:rgba(255,255,255,0.03);margin-bottom:10px}
+.br-insight-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.br-insight-body{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6}
+.br-insight-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:4px}
+/* Recomendacao */
+.br-rec{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.br-rec:last-child{border-bottom:none}
+.br-rec-num{font-size:24px;font-weight:900;color:#2EC4B6;opacity:.5;min-width:32px;line-height:1}
+.br-rec-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.br-rec-body{font-size:11px;color:rgba(255,255,255,0.5);line-height:1.6}
+/* Encerramento */
+.br-enc{text-align:center;padding:20px 0}
+.br-enc-big{font-size:clamp(28px,4vw,48px);font-weight:900;color:#fff;letter-spacing:-1px;text-transform:uppercase;margin-bottom:8px}
+.br-enc-sub{font-size:14px;color:#2EC4B6;margin-bottom:28px}
+.br-enc-meta{display:inline-flex;gap:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(46,196,182,0.2);border-radius:12px;padding:14px 24px;flex-wrap:wrap;justify-content:center}
+.br-enc-item{text-align:center}
+.br-enc-val{font-size:18px;font-weight:800;color:#fff}
+.br-enc-lbl{font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
 .hs-row{display:grid;grid-template-columns:1fr 60px 80px 80px 80px 90px;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:12px;margin-bottom:4px;border:1px solid transparent}
 .hs-row:hover{background:var(--sec)}
 .hs-row.header{font-size:10px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px;padding:4px 10px;margin-bottom:6px}
@@ -318,6 +384,9 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
   <button class="tb" data-tab="operacional" onclick="switchTab('operacional')" role="tab"><i class="ti ti-users-group"></i> Operacional</button>
   <div style="flex:1"></div>
   <button class="tb tb-ia" data-tab="ia" onclick="switchTab('ia')" role="tab"><i class="ti ti-sparkles"></i> IA + Chat <span class="tb-ia-badge">NOVO</span></button>
+  <button onclick="startBriefing()" id="btn-briefing" title="Modo Briefing — apresentação executiva" style="margin-left:8px;background:rgba(46,196,182,0.15);border:1px solid rgba(46,196,182,0.4);color:#2EC4B6;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(46,196,182,0.3)'" onmouseout="this.style.background='rgba(46,196,182,0.15)'">
+    <i class="ti ti-presentation"></i> Briefing
+  </button>
 </nav>
 
 <!-- VISÃO GERAL -->
@@ -377,6 +446,22 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
       <div id="top5"></div>
     </div>
   </div>
+</div>
+
+<!-- BRIEFING OVERLAY -->
+<div id="br-overlay">
+  <div class="br-header">
+    <span class="br-logo-text">Álamo Intermodal Logistics</span>
+    <div class="br-divider"></div>
+    <span class="br-periodo" id="br-periodo-lbl">—</span>
+    <button class="br-close" onclick="stopBriefing()"><i class="ti ti-x"></i> Fechar (Esc)</button>
+  </div>
+  <div class="br-progress" id="br-progress"></div>
+  <div class="br-stage" id="br-stage">
+    <div class="br-nav prev" onclick="briefNav(-1)"><i class="ti ti-chevron-left"></i></div>
+    <div class="br-nav next" onclick="briefNav(1)"><i class="ti ti-chevron-right"></i></div>
+  </div>
+  <div class="br-footer">← → navegar &nbsp;·&nbsp; espaço avançar &nbsp;·&nbsp; esc fechar</div>
 </div>
 
 <!-- MODAL META -->
@@ -2110,6 +2195,284 @@ function renderForecast(){
 
   document.getElementById('fc-tag').textContent=`projetado com ${rev.length} meses de histórico`;
 }
+
+// ============================================================
+// MODO BRIEFING — Apresentação Executiva
+// ============================================================
+let BR_SLIDES=[],BR_IDX=0,BR_TIMER=null,BR_PAUSED=false,BR_ELAPSED=0,BR_START=0;
+const BR_DUR=7000;
+
+function buildBriefSlides(){
+  const rev=getRevSlice(),mths=getMonths();
+  const n=rev.length,tot=sum(rev);
+  const meanM=avg(rev.filter((_,i)=>{
+    const now=new Date();const curM=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
+    return mths[i]!==curM;
+  })||rev);
+  const periodo=n?(mths[0]+' → '+mths[n-1]):'—';
+  const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
+  const nClientes=filtC.length;
+  const ticketMedio=tot/(filtC.reduce((s,c)=>s+c.l,0)||1);
+  const maxM=Math.max(...rev),maxMth=mths[rev.indexOf(maxM)]||'—';
+  const armTot=ST.empresas.includes('ARM')?sum(getSelectedIndices().map(i=>M.ARM[i]||0)):0;
+  const logTot=ST.empresas.includes('LOG')?sum(getSelectedIndices().map(i=>M.LOG[i]||0)):0;
+  const top1=filtC[0]||{n:'—',r:0,l:0,t:0};
+  const top5rev=filtC.slice(0,5).reduce((s,c)=>s+c.r,0);
+  const top5pct=tot?Math.round(top5rev/tot*100):0;
+  const top1pct=tot?Math.round(top1.r/tot*100):0;
+  // Variação vs período anterior
+  const idxs=getSelectedIndices();
+  let varPct=null;
+  if(idxs.length&&idxs[0]>=idxs.length){
+    const arr=ST.empresas.length===2?M.total:ST.empresas.includes('ARM')?M.ARM:M.LOG;
+    const prev=sum(idxs.map(i=>arr[i-idxs.length]||0));
+    if(prev>0)varPct=((tot-prev)/prev*100);
+  }
+  // Forecast
+  const fcData=buildForecast(rev,mths);
+  // Health scores
+  const saudavel=(HEALTH_SCORES||[]).filter(c=>c.status==='Saudável').length;
+  const risco=(HEALTH_SCORES||[]).filter(c=>c.status==='Risco').length;
+  const atencao=(HEALTH_SCORES||[]).filter(c=>c.status==='Atenção').length;
+
+  const now=new Date();
+  const dataGer=now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const S=[];
+
+  // 1. CAPA
+  S.push({type:'capa',periodo,empresa:ST.empresas.length===2?'ARM 262 + LOG Santos':ST.empresas[0]==='ARM'?'ARM 262':'LOG Santos',data:dataGer});
+
+  // 2. VISÃO GERAL DO FATURAMENTO
+  S.push({type:'visao',kpis:[
+    {v:fmtM(tot),l:'Faturamento do período',sub:n+' meses consolidados'},
+    {v:fmtM(meanM),l:'Média mensal',sub:'meses fechados'},
+    {v:fmtM(maxM),l:'Pico do período',sub:maxMth},
+    {v:nClientes+'',l:'Clientes ativos',sub:'no período filtrado'},
+  ],varPct});
+
+  // 3. MIX POR EMPRESA
+  if(ST.empresas.length===2){
+    const at=armTot+logTot||1;
+    S.push({type:'empresa',armTot,logTot,armPct:Math.round(armTot/at*100),logPct:Math.round(logTot/at*100),tot});
+  }
+
+  // 4. TOP CLIENTES
+  S.push({type:'clientes',top:filtC.slice(0,8),tot,top1pct,top5pct});
+
+  // 5. CONCENTRAÇÃO
+  S.push({type:'concentracao',filtC,tot,top1pct,top5pct});
+
+  // 6. SAÚDE DA CARTEIRA
+  if(HEALTH_SCORES&&HEALTH_SCORES.length){
+    const riscoList=(HEALTH_SCORES||[]).filter(c=>c.status==='Risco').slice(0,5);
+    S.push({type:'saude',saudavel,atencao,risco,total:HEALTH_SCORES.length,riscoList});
+  }
+
+  // 7. FORECAST
+  if(fcData){
+    S.push({type:'forecast',rev,mths,fc:fcData,tot});
+  }
+
+  // 8. INSIGHTS (usa o mesmo texto gerado pela IA se disponível, senão gera)
+  S.push({type:'insights',tot,varPct,top1,top1pct,top5pct,nClientes,ticketMedio,saudavel,risco,periodo});
+
+  // 9. RECOMENDAÇÕES
+  S.push({type:'recomendacoes',tot,top1pct,top5pct,risco,varPct});
+
+  // 10. ENCERRAMENTO
+  S.push({type:'encerramento',tot,nClientes,periodo,dataGer,fcData});
+
+  return S;
+}
+
+function renderBriefSlide(s){
+  const stage=document.getElementById('br-stage');
+  let html='';
+
+  if(s.type==='capa'){
+    html=`<div class="br-slide br-capa">
+      <div class="br-capa-inner">
+        <div class="br-accent-bar"></div>
+        <div>
+          <div class="br-capa-title">Análise Executiva<br>de Faturamento</div>
+          <div class="br-capa-sub">${s.periodo} &nbsp;·&nbsp; ${s.empresa}</div>
+        </div>
+      </div>
+      <div class="br-capa-footer">
+        <span class="br-capa-company">Alamo Intermodal Logistics</span>
+        <span class="br-capa-date">Apresentação para Diretoria &nbsp;·&nbsp; ${s.data}</span>
+      </div>
+    </div>`;
+  }
+  else if(s.type==='visao'){
+    const varHtml=s.varPct!=null
+      ?`<span style="color:${s.varPct>=0?'#2EC4B6':'#ef4444'};font-weight:700">${s.varPct>=0?'▲ +':'▼ '}${Math.abs(s.varPct).toFixed(1)}%</span> vs período anterior`
+      :'';
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-trending-up"></i></div><div class="br-slide-title">Visão Geral do Faturamento</div></div>
+      <div class="br-kpis">${s.kpis.map(k=>`<div class="br-kpi"><div class="br-kpi-val">${k.v}</div><div class="br-kpi-lbl">${k.l}</div><div class="br-kpi-sub">${k.sub}</div></div>`).join('')}</div>
+      ${varHtml?`<div style="font-size:12px;color:rgba(255,255,255,0.5);padding:10px 0">${varHtml}</div>`:''}
+    </div>`;
+  }
+  else if(s.type==='empresa'){
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-building"></i></div><div class="br-slide-title">Mix por Empresa</div></div>
+      <div class="br-kpis">
+        <div class="br-kpi" style="border-color:#E8751A"><div class="br-kpi-val">${fmtM(s.armTot)}</div><div class="br-kpi-lbl">ARM Nº 262</div><div class="br-kpi-sub" style="color:#E8751A">${s.armPct}% do total</div></div>
+        <div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${fmtM(s.logTot)}</div><div class="br-kpi-lbl">LOG Santos</div><div class="br-kpi-sub" style="color:#6b9fe4">${s.logPct}% do total</div></div>
+      </div>
+      <div style="height:20px;display:flex;border-radius:4px;overflow:hidden;margin-top:8px">
+        <div style="width:${s.armPct}%;background:#E8751A;transition:width 1s ease"></div>
+        <div style="flex:1;background:#1A4FA0;transition:width 1s ease"></div>
+      </div>
+    </div>`;
+  }
+  else if(s.type==='clientes'){
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-users"></i></div><div class="br-slide-title">Ranking Top Clientes</div></div>
+      <div class="br-two">
+        <div class="br-box">
+          <div class="br-box-title">Por faturamento</div>
+          ${s.top.slice(0,5).map((c,i)=>`<div class="br-list-row"><span><span class="br-list-num">${i+1}</span>${c.n.length>22?c.n.slice(0,20)+'…':c.n}</span><span class="br-list-val">${fmt(c.r)}</span></div>`).join('')}
+        </div>
+        <div class="br-box">
+          <div class="br-box-title">Concentração</div>
+          <div style="padding:12px 0">
+            ${[{l:'Top 1',v:s.top1pct+'%'},{l:'Top 3',v:s.top?Math.round(s.top.slice(0,3).reduce((a,c)=>a+c.r,0)/s.tot*100)+'%':0+'%'},{l:'Top 5',v:s.top5pct+'%'},{l:'Top 10',v:s.top?Math.round(s.top.slice(0,10).reduce((a,c)=>a+c.r,0)/s.tot*100)+'%':0+'%'}].map(r=>`<div class="br-list-row"><span>${r.l}</span><span class="br-list-val" style="color:${parseInt(r.v)>40?'#ef4444':parseInt(r.v)>25?'#f59e0b':'#2EC4B6'}">${r.v}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  else if(s.type==='concentracao'){
+    const riskLevel=s.top1pct>15?'ALTO':s.top1pct>10?'MODERADO-ALTO':'MODERADO';
+    const riskColor=s.top1pct>15?'#ef4444':s.top1pct>10?'#f59e0b':'#2EC4B6';
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-pie"></i></div><div class="br-slide-title">Concentração de Receita</div></div>
+      <div class="br-insight" style="border-color:${riskColor};margin-bottom:14px">
+        <div class="br-insight-title" style="color:${riskColor}">Risco de Concentração: ${riskLevel}</div>
+        <div class="br-insight-body">Top 5 clientes concentram ${s.top5pct}% da receita. ${s.filtC[0]?.n||'Maior cliente'} responde por ${s.top1pct}% isoladamente. A perda de qualquer cliente do Top 5 causaria impacto significativo.</div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);padding:8px 0">Ponto positivo: distribuição entre ${s.filtC.length} clientes ativos mitiga parte do risco.</div>
+    </div>`;
+  }
+  else if(s.type==='saude'){
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-heart-rate-monitor"></i></div><div class="br-slide-title">Saúde da Carteira de Clientes</div></div>
+      <div class="br-kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+        <div class="br-kpi" style="border-color:#2EC4B6"><div class="br-kpi-val">${s.saudavel}</div><div class="br-kpi-lbl">Saudáveis</div><div class="br-kpi-sub">Score ≥ 70</div></div>
+        <div class="br-kpi" style="border-color:#f59e0b"><div class="br-kpi-val">${s.atencao}</div><div class="br-kpi-lbl">Em Atenção</div><div class="br-kpi-sub">Score 40–69</div></div>
+        <div class="br-kpi" style="border-color:#ef4444"><div class="br-kpi-val">${s.risco}</div><div class="br-kpi-lbl">Em Risco</div><div class="br-kpi-sub">Score &lt; 40</div></div>
+      </div>
+      ${s.riscoList.length?`<div class="br-box"><div class="br-box-title" style="color:#ef4444">Clientes em Risco — ação imediata</div>${s.riscoList.map(c=>`<div class="br-list-row"><span>${c.cliente}</span><span class="br-list-val" style="color:#ef4444">Score ${c.score}</span></div>`).join('')}</div>`:''}
+    </div>`;
+  }
+  else if(s.type==='forecast'){
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-line"></i></div><div class="br-slide-title">Projeção — Próximos 3 Meses</div></div>
+      <div class="br-kpis">${s.fc.map(f=>`<div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${fmtM(f.point)}</div><div class="br-kpi-lbl">${f.label}</div><div class="br-kpi-sub" style="color:rgba(255,255,255,0.4)">${fmtM(f.lo)} – ${fmtM(f.hi)}</div></div>`).join('')}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px">Modelo: sazonalidade histórica + tendência linear · ${s.mths.length} meses de base · banda ±15%</div>
+    </div>`;
+  }
+  else if(s.type==='insights'){
+    const var_=s.varPct!=null?(s.varPct>=0?`crescimento de +${s.varPct.toFixed(1)}%`:`queda de ${s.varPct.toFixed(1)}%`):'variação não disponível';
+    const ins=[
+      {cor:'#2EC4B6',titulo:'Saúde da Carteira',lbl:'Análise',body:`Base com ${s.nClientes} clientes ativos. ${s.saudavel} saudáveis e ${s.risco} em risco. Ticket médio de ${fmtM(s.ticketMedio)} por operação.`},
+      {cor:'#f59e0b',titulo:'Qualidade do Crescimento',lbl:'Oportunidade',body:`Receita de ${fmtM(s.tot)} no período com ${var_}. Top 5 concentram ${s.top5pct}% — oportunidade de diversificação no mid-market.`},
+      {cor:s.top1pct>15?'#ef4444':'#2EC4B6',titulo:'Dependência e Risco',lbl:'Atenção',body:`${s.top1?.n||'Top cliente'} representa ${s.top1pct}% da receita. Concentração elevada exige programa de retenção ativo.`},
+    ];
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-bulb"></i></div><div class="br-slide-title">Insights Estratégicos</div></div>
+      ${ins.map(i=>`<div class="br-insight" style="border-color:${i.cor}"><div class="br-insight-lbl" style="color:${i.cor}">${i.lbl}</div><div class="br-insight-title" style="color:#fff">${i.titulo}</div><div class="br-insight-body">${i.body}</div></div>`).join('')}
+    </div>`;
+  }
+  else if(s.type==='recomendacoes'){
+    const recs=[
+      {titulo:'Programa Anti-Churn',body:`Monitorar clientes em risco (score < 40). Criar playbook de retenção para contas > R$100K.`},
+      {titulo:'Diversificação Mid-Market',body:`Top 5 = ${s.top5pct}%. Meta: reduzir para < 35% em 12 meses com 20+ novos clientes na faixa R$100K–500K.`},
+      {titulo:'Expansão de Carteira',body:`${s.risco||0} clientes em risco — acionar equipe comercial para visita de reativação nas próximas 2 semanas.`},
+    ];
+    if(s.varPct!=null&&s.varPct<0)recs.push({titulo:'Recuperação de Receita',body:`Queda de ${Math.abs(s.varPct).toFixed(1)}% vs período anterior. Identificar clientes que reduziram volume e criar oferta de expansão.'`});
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-target"></i></div><div class="br-slide-title">Recomendações Estratégicas</div></div>
+      ${recs.map((r,i)=>`<div class="br-rec"><div class="br-rec-num">0${i+1}</div><div><div class="br-rec-title">${r.titulo}</div><div class="br-rec-body">${r.body}</div></div></div>`).join('')}
+    </div>`;
+  }
+  else if(s.type==='encerramento'){
+    html=`<div class="br-slide br-enc">
+      <div class="br-enc-big">Decida<br>com dados.</div>
+      <div class="br-enc-sub">Álamo Analytics · Inteligência de Receita · Santos, SP</div>
+      <div class="br-enc-meta">
+        <div class="br-enc-item"><div class="br-enc-val">${fmtM(s.tot)}</div><div class="br-enc-lbl">Receita do período</div></div>
+        <div class="br-enc-item"><div class="br-enc-val">${s.nClientes}</div><div class="br-enc-lbl">Clientes ativos</div></div>
+        ${s.fcData?`<div class="br-enc-item"><div class="br-enc-val">${fmtM(s.fcData[0].point)}</div><div class="br-enc-lbl">Projeção ${s.fcData[0].label}</div></div>`:''}
+        <div class="br-enc-item"><div class="br-enc-val">${s.periodo}</div><div class="br-enc-lbl">Período analisado</div></div>
+      </div>
+      <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,0.2)">Gerado em ${s.dataGer} · Álamo Analytics</div>
+    </div>`;
+  }
+
+  // Injeta no stage preservando os botões de nav
+  const prev=stage.querySelector('.br-nav.prev').outerHTML;
+  const next=stage.querySelector('.br-nav.next').outerHTML;
+  stage.innerHTML=prev+html+next;
+
+  // Progress
+  document.getElementById('br-progress').innerHTML=
+    BR_SLIDES.map((_,i)=>`<div class="br-pbar"><div class="br-pfill" id="br-pf-${i}" style="width:${i<BR_IDX?100:0}%"></div></div>`).join('');
+}
+
+function briefTick(t){
+  if(!document.getElementById('br-overlay').classList.contains('open'))return;
+  if(!BR_PAUSED){
+    const el=BR_ELAPSED+(t-BR_START);
+    const pf=document.getElementById('br-pf-'+BR_IDX);
+    if(pf)pf.style.width=Math.min(100,el/BR_DUR*100)+'%';
+    if(el>=BR_DUR){
+      if(BR_IDX<BR_SLIDES.length-1){BR_IDX++;renderBriefSlide(BR_SLIDES[BR_IDX]);BR_START=performance.now();BR_ELAPSED=0;}
+      else{stopBriefing();return;}
+    }
+  }
+  BR_TIMER=requestAnimationFrame(briefTick);
+}
+
+function startBriefing(){
+  if(!MONTHS||!MONTHS.length){alert('Aguarde o carregamento dos dados.');return;}
+  if(!HEALTH_SCORES||!HEALTH_SCORES.length)buildHealthScores();
+  BR_SLIDES=buildBriefSlides();BR_IDX=0;BR_PAUSED=false;BR_ELAPSED=0;
+  const periodo=BR_SLIDES[0]?.periodo||'—';
+  document.getElementById('br-periodo-lbl').textContent=periodo;
+  document.getElementById('br-overlay').classList.add('open');
+  document.documentElement.requestFullscreen?.().catch(()=>{});
+  renderBriefSlide(BR_SLIDES[0]);
+  cancelAnimationFrame(BR_TIMER);BR_START=performance.now();
+  BR_TIMER=requestAnimationFrame(briefTick);
+}
+
+function stopBriefing(){
+  document.getElementById('br-overlay').classList.remove('open');
+  cancelAnimationFrame(BR_TIMER);
+  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+}
+
+function briefNav(d){
+  const n=BR_IDX+d;
+  if(n<0)return;
+  if(n>=BR_SLIDES.length){stopBriefing();return;}
+  BR_IDX=n;BR_ELAPSED=0;BR_START=performance.now();
+  renderBriefSlide(BR_SLIDES[BR_IDX]);
+}
+
+// Pause on hold
+const brEl=document.getElementById('br-overlay');
+brEl.addEventListener('pointerdown',e=>{if(!e.target.closest('.br-nav')&&!e.target.closest('.br-close')){BR_PAUSED=true;BR_ELAPSED+=performance.now()-BR_START;}});
+brEl.addEventListener('pointerup',e=>{if(!e.target.closest('.br-nav')&&!e.target.closest('.br-close')){BR_PAUSED=false;BR_START=performance.now();}});
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('br-overlay').classList.contains('open'))return;
+  if(e.key==='Escape')stopBriefing();
+  else if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();briefNav(1);}
+  else if(e.key==='ArrowLeft'){e.preventDefault();briefNav(-1);}
+});
 
 // ============================================================
 // META MENSAL — GAUGE
