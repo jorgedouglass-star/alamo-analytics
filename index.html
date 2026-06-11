@@ -384,7 +384,7 @@ body.dark .tb-ia{border-left-color:rgba(255,255,255,0.06)}
   <button class="tb" data-tab="operacional" onclick="switchTab('operacional')" role="tab"><i class="ti ti-users-group"></i> Operacional</button>
   <div style="flex:1"></div>
   <button class="tb tb-ia" data-tab="ia" onclick="switchTab('ia')" role="tab"><i class="ti ti-sparkles"></i> IA + Chat <span class="tb-ia-badge">NOVO</span></button>
-  <button onclick="startBriefing()" id="btn-briefing" title="Modo Briefing — apresentação executiva" style="margin-left:8px;background:rgba(46,196,182,0.15);border:1px solid rgba(46,196,182,0.4);color:#2EC4B6;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(46,196,182,0.3)'" onmouseout="this.style.background='rgba(46,196,182,0.15)'">
+  <button onclick="startBriefing()" id="btn-briefing" title="Modo Briefing — apresentação executiva" style="margin-left:8px;background:rgba(46,196,182,0.12);border:1px solid rgba(46,196,182,0.35);color:#2EC4B6;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(46,196,182,0.25)'" onmouseout="this.style.background='rgba(46,196,182,0.12)'">
     <i class="ti ti-presentation"></i> Briefing
   </button>
 </nav>
@@ -2205,197 +2205,236 @@ const BR_DUR=7000;
 function buildBriefSlides(){
   const rev=getRevSlice(),mths=getMonths();
   const n=rev.length,tot=sum(rev);
-  const meanM=avg(rev.filter((_,i)=>{
-    const now=new Date();const curM=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
-    return mths[i]!==curM;
-  })||rev);
+  const now=new Date();
+  const curMesStr=now.getFullYear()+'/'+String(now.getMonth()+1).padStart(2,'0');
+  const revFech=rev.filter((_,i)=>mths[i]!==curMesStr);
+  const meanM=avg(revFech.length?revFech:rev);
   const periodo=n?(mths[0]+' → '+mths[n-1]):'—';
   const filtC=ST.empresas.length<2?CLIENTS.filter(c=>ST.empresas.includes(c.e)):CLIENTS;
   const nClientes=filtC.length;
-  const ticketMedio=tot/(filtC.reduce((s,c)=>s+c.l,0)||1);
+  const totalLanc=filtC.reduce((s,c)=>s+c.l,0)||1;
+  const ticketMedio=tot/totalLanc;
   const maxM=Math.max(...rev),maxMth=mths[rev.indexOf(maxM)]||'—';
   const armTot=ST.empresas.includes('ARM')?sum(getSelectedIndices().map(i=>M.ARM[i]||0)):0;
   const logTot=ST.empresas.includes('LOG')?sum(getSelectedIndices().map(i=>M.LOG[i]||0)):0;
-  const top1=filtC[0]||{n:'—',r:0,l:0,t:0};
-  const top5rev=filtC.slice(0,5).reduce((s,c)=>s+c.r,0);
-  const top5pct=tot?Math.round(top5rev/tot*100):0;
-  const top1pct=tot?Math.round(top1.r/tot*100):0;
-  // Variação vs período anterior
   const idxs=getSelectedIndices();
-  let varPct=null;
+  let varPct=null,varAbs=0;
   if(idxs.length&&idxs[0]>=idxs.length){
     const arr=ST.empresas.length===2?M.total:ST.empresas.includes('ARM')?M.ARM:M.LOG;
     const prev=sum(idxs.map(i=>arr[i-idxs.length]||0));
-    if(prev>0)varPct=((tot-prev)/prev*100);
+    if(prev>0){varPct=((tot-prev)/prev*100);varAbs=tot-prev;}
   }
-  // Forecast
+  const top1pct=tot?Math.round((filtC[0]?.r||0)/tot*100):0;
+  const top3pct=tot?Math.round(filtC.slice(0,3).reduce((s,c)=>s+c.r,0)/tot*100):0;
+  const top5pct=tot?Math.round(filtC.slice(0,5).reduce((s,c)=>s+c.r,0)/tot*100):0;
+  const top10pct=tot?Math.round(filtC.slice(0,10).reduce((s,c)=>s+c.r,0)/tot*100):0;
+  const top20pct=tot?Math.round(filtC.slice(0,20).reduce((s,c)=>s+c.r,0)/tot*100):0;
   const fcData=buildForecast(rev,mths);
-  // Health scores
   const saudavel=(HEALTH_SCORES||[]).filter(c=>c.status==='Saudável').length;
   const risco=(HEALTH_SCORES||[]).filter(c=>c.status==='Risco').length;
   const atencao=(HEALTH_SCORES||[]).filter(c=>c.status==='Atenção').length;
-
-  const now=new Date();
+  const riscoList=(HEALTH_SCORES||[]).filter(c=>c.status==='Risco').slice(0,5);
   const dataGer=now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-  const S=[];
-
-  // 1. CAPA
-  S.push({type:'capa',periodo,empresa:ST.empresas.length===2?'ARM 262 + LOG Santos':ST.empresas[0]==='ARM'?'ARM 262':'LOG Santos',data:dataGer});
-
-  // 2. VISÃO GERAL DO FATURAMENTO
-  S.push({type:'visao',kpis:[
-    {v:fmtM(tot),l:'Faturamento do período',sub:n+' meses consolidados'},
-    {v:fmtM(meanM),l:'Média mensal',sub:'meses fechados'},
-    {v:fmtM(maxM),l:'Pico do período',sub:maxMth},
-    {v:nClientes+'',l:'Clientes ativos',sub:'no período filtrado'},
-  ],varPct});
-
-  // 3. MIX POR EMPRESA
-  if(ST.empresas.length===2){
-    const at=armTot+logTot||1;
-    S.push({type:'empresa',armTot,logTot,armPct:Math.round(armTot/at*100),logPct:Math.round(logTot/at*100),tot});
-  }
-
-  // 4. TOP CLIENTES
-  S.push({type:'clientes',top:filtC.slice(0,8),tot,top1pct,top5pct});
-
-  // 5. CONCENTRAÇÃO
-  S.push({type:'concentracao',filtC,tot,top1pct,top5pct});
-
-  // 6. SAÚDE DA CARTEIRA
-  if(HEALTH_SCORES&&HEALTH_SCORES.length){
-    const riscoList=(HEALTH_SCORES||[]).filter(c=>c.status==='Risco').slice(0,5);
-    S.push({type:'saude',saudavel,atencao,risco,total:HEALTH_SCORES.length,riscoList});
-  }
-
-  // 7. FORECAST
-  if(fcData){
-    S.push({type:'forecast',rev,mths,fc:fcData,tot});
-  }
-
-  // 8. INSIGHTS (usa o mesmo texto gerado pela IA se disponível, senão gera)
-  S.push({type:'insights',tot,varPct,top1,top1pct,top5pct,nClientes,ticketMedio,saudavel,risco,periodo});
-
-  // 9. RECOMENDAÇÕES
-  S.push({type:'recomendacoes',tot,top1pct,top5pct,risco,varPct});
-
-  // 10. ENCERRAMENTO
-  S.push({type:'encerramento',tot,nClientes,periodo,dataGer,fcData});
-
-  return S;
+  const empresa=ST.empresas.length===2?'ARM 262 + LOG Santos':ST.empresas[0]==='ARM'?'ARM 262':'LOG Santos';
+  return[
+    {type:'capa',periodo,empresa,dataGer},
+    {type:'visao',tot,meanM,maxM,maxMth,nClientes,ticketMedio,varPct,varAbs,n,rev,mths},
+    {type:'comparacao',tot,varPct,varAbs,nClientes,ticketMedio,armTot,logTot,n},
+    {type:'ranking',filtC,tot,top1pct},
+    {type:'concentracao',filtC,tot,top1pct,top3pct,top5pct,top10pct,top20pct},
+    {type:'indicadores',tot,nClientes,ticketMedio,varPct,top20pct,top5pct,saudavel,risco,atencao,total:(HEALTH_SCORES||[]).length,armTot,logTot},
+    {type:'saude',saudavel,atencao,risco,total:(HEALTH_SCORES||[]).length,riscoList},
+    ...(fcData?[{type:'forecast',rev,mths,fc:fcData,tot}]:[]),
+    {type:'insights',tot,varPct,filtC,top1pct,top5pct,nClientes,ticketMedio,saudavel,risco,periodo,armTot,logTot},
+    {type:'positivos',tot,varPct,filtC,top1pct,ticketMedio,nClientes,saudavel},
+    {type:'melhorias',risco,top5pct,varPct,filtC},
+    {type:'recomendacoes',risco,top5pct,varPct,nClientes},
+    {type:'encerramento',tot,nClientes,periodo,dataGer,fcData},
+  ];
 }
 
 function renderBriefSlide(s){
   const stage=document.getElementById('br-stage');
   let html='';
+  const fmtVar=(v)=>v!=null?`<span style="color:${v>=0?'#2EC4B6':'#ef4444'};font-weight:700">${v>=0?'▲ +':'▼ '}${Math.abs(v).toFixed(1)}%</span>`:'—';
 
   if(s.type==='capa'){
     html=`<div class="br-slide br-capa">
-      <div class="br-capa-inner">
-        <div class="br-accent-bar"></div>
-        <div>
-          <div class="br-capa-title">Análise Executiva<br>de Faturamento</div>
-          <div class="br-capa-sub">${s.periodo} &nbsp;·&nbsp; ${s.empresa}</div>
-        </div>
+      <div class="br-capa-inner"><div class="br-accent-bar"></div>
+        <div><div class="br-capa-title">Análise Executiva<br>de Faturamento</div>
+        <div class="br-capa-sub">${s.periodo} &nbsp;·&nbsp; ${s.empresa}</div></div>
       </div>
       <div class="br-capa-footer">
         <span class="br-capa-company">Alamo Intermodal Logistics</span>
-        <span class="br-capa-date">Apresentação para Diretoria &nbsp;·&nbsp; ${s.data}</span>
-      </div>
-    </div>`;
+        <span class="br-capa-date">Apresentação para Diretoria &nbsp;·&nbsp; ${s.dataGer}</span>
+      </div></div>`;
   }
   else if(s.type==='visao'){
-    const varHtml=s.varPct!=null
-      ?`<span style="color:${s.varPct>=0?'#2EC4B6':'#ef4444'};font-weight:700">${s.varPct>=0?'▲ +':'▼ '}${Math.abs(s.varPct).toFixed(1)}%</span> vs período anterior`
-      :'';
+    const sparkW=400,sparkH=55;
+    const maxV=Math.max(...s.rev,1);
+    const pts=s.rev.map((v,i)=>{const x=10+i*(sparkW-20)/(s.rev.length-1||1);const y=sparkH-8-(v/maxV)*(sparkH-18);return`${x},${y}`;}).join(' ');
     html=`<div class="br-slide">
       <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-trending-up"></i></div><div class="br-slide-title">Visão Geral do Faturamento</div></div>
-      <div class="br-kpis">${s.kpis.map(k=>`<div class="br-kpi"><div class="br-kpi-val">${k.v}</div><div class="br-kpi-lbl">${k.l}</div><div class="br-kpi-sub">${k.sub}</div></div>`).join('')}</div>
-      ${varHtml?`<div style="font-size:12px;color:rgba(255,255,255,0.5);padding:10px 0">${varHtml}</div>`:''}
-    </div>`;
-  }
-  else if(s.type==='empresa'){
-    html=`<div class="br-slide">
-      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-building"></i></div><div class="br-slide-title">Mix por Empresa</div></div>
       <div class="br-kpis">
-        <div class="br-kpi" style="border-color:#E8751A"><div class="br-kpi-val">${fmtM(s.armTot)}</div><div class="br-kpi-lbl">ARM Nº 262</div><div class="br-kpi-sub" style="color:#E8751A">${s.armPct}% do total</div></div>
-        <div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${fmtM(s.logTot)}</div><div class="br-kpi-lbl">LOG Santos</div><div class="br-kpi-sub" style="color:#6b9fe4">${s.logPct}% do total</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${fmtM(s.tot)}</div><div class="br-kpi-lbl">Faturamento total</div><div class="br-kpi-sub">${s.n} meses</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${fmtVar(s.varPct)}</div><div class="br-kpi-lbl">Crescimento</div><div class="br-kpi-sub">${s.varAbs?'R$ '+Math.abs(s.varAbs).toLocaleString('pt-BR',{maximumFractionDigits:0}):''}</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${s.nClientes}</div><div class="br-kpi-lbl">Clientes ativos</div><div class="br-kpi-sub">no período</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${fmtM(s.ticketMedio)}</div><div class="br-kpi-lbl">Ticket médio</div><div class="br-kpi-sub">por lançamento</div></div>
       </div>
-      <div style="height:20px;display:flex;border-radius:4px;overflow:hidden;margin-top:8px">
-        <div style="width:${s.armPct}%;background:#E8751A;transition:width 1s ease"></div>
-        <div style="flex:1;background:#1A4FA0;transition:width 1s ease"></div>
-      </div>
-    </div>`;
+      <div style="display:flex;gap:12px">
+        <div class="br-box" style="flex:2">
+          <div class="br-box-title">Evolução mensal</div>
+          <svg viewBox="0 0 ${sparkW} ${sparkH}" width="100%" height="${sparkH}">
+            <polyline points="${pts}" fill="none" stroke="#2EC4B6" stroke-width="2" stroke-linejoin="round"/>
+            ${s.rev.map((v,i)=>{const x=10+i*(sparkW-20)/(s.rev.length-1||1);const y=sparkH-8-(v/maxV)*(sparkH-18);const isCur=s.mths[i]===s.mths[s.rev.length-1];return`<circle cx="${x}" cy="${y}" r="${isCur?4:2}" fill="${isCur?'#E8751A':'#2EC4B6'}"/>`;}).join('')}
+          </svg>
+        </div>
+        <div class="br-box" style="flex:1">
+          <div class="br-box-title">Destaques</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px">Pico: <strong style="color:#fff">${fmtM(s.maxM)}</strong> (${s.maxMth})</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)">Média: <strong style="color:#fff">${fmtM(s.meanM)}</strong>/mês</div>
+        </div>
+      </div></div>`;
   }
-  else if(s.type==='clientes'){
+  else if(s.type==='comparacao'){
+    const at=s.armTot+s.logTot||1;
     html=`<div class="br-slide">
-      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-users"></i></div><div class="br-slide-title">Ranking Top Clientes</div></div>
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-bar"></i></div><div class="br-slide-title">Comparação de Períodos</div></div>
       <div class="br-two">
         <div class="br-box">
-          <div class="br-box-title">Por faturamento</div>
-          ${s.top.slice(0,5).map((c,i)=>`<div class="br-list-row"><span><span class="br-list-num">${i+1}</span>${c.n.length>22?c.n.slice(0,20)+'…':c.n}</span><span class="br-list-val">${fmt(c.r)}</span></div>`).join('')}
+          <div class="br-box-title" style="color:#2EC4B6">Faturamento vs Período Anterior</div>
+          ${[{l:'Faturamento atual',v:fmtM(s.tot),b:true},{l:'Crescimento %',v:s.varPct!=null?(s.varPct>=0?'+':'')+s.varPct.toFixed(1)+'%':'—',c:s.varPct>=0?'#2EC4B6':'#ef4444'},{l:'Crescimento absoluto',v:s.varAbs?fmtM(Math.abs(s.varAbs)):'—'},{l:'Clientes ativos',v:s.nClientes+''},{l:'Ticket médio',v:fmtM(s.ticketMedio),b:true}].map(r=>`<div class="br-list-row"><span>${r.l}</span><span class="br-list-val" style="${r.c?'color:'+r.c+';':''}">${r.v}</span></div>`).join('')}
         </div>
         <div class="br-box">
-          <div class="br-box-title">Concentração</div>
-          <div style="padding:12px 0">
-            ${[{l:'Top 1',v:s.top1pct+'%'},{l:'Top 3',v:s.top?Math.round(s.top.slice(0,3).reduce((a,c)=>a+c.r,0)/s.tot*100)+'%':0+'%'},{l:'Top 5',v:s.top5pct+'%'},{l:'Top 10',v:s.top?Math.round(s.top.slice(0,10).reduce((a,c)=>a+c.r,0)/s.tot*100)+'%':0+'%'}].map(r=>`<div class="br-list-row"><span>${r.l}</span><span class="br-list-val" style="color:${parseInt(r.v)>40?'#ef4444':parseInt(r.v)>25?'#f59e0b':'#2EC4B6'}">${r.v}</span></div>`).join('')}
+          <div class="br-box-title" style="color:#E8751A">Mix por Empresa</div>
+          <div class="br-list-row"><span>ARM Nº 262 <small style="color:rgba(255,255,255,0.35)">${Math.round(s.armTot/at*100)}%</small></span><span class="br-list-val">${fmtM(s.armTot)}</span></div>
+          <div class="br-list-row"><span>LOG Santos <small style="color:rgba(255,255,255,0.35)">${Math.round(s.logTot/at*100)}%</small></span><span class="br-list-val">${fmtM(s.logTot)}</span></div>
+          <div style="height:10px;display:flex;border-radius:3px;overflow:hidden;margin:10px 0">
+            <div style="width:${Math.round(s.armTot/at*100)}%;background:#E8751A"></div>
+            <div style="flex:1;background:#1A4FA0"></div>
           </div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4)">Média mensal: ${fmtM(s.tot/s.n)}</div>
         </div>
-      </div>
-    </div>`;
+      </div></div>`;
+  }
+  else if(s.type==='ranking'){
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-trophy"></i></div><div class="br-slide-title">Ranking Top 20 Clientes</div></div>
+      <div class="br-two">
+        <div class="br-box">${s.filtC.slice(0,10).map((c,i)=>`<div class="br-list-row"><span><span class="br-list-num">${i+1}</span>${c.n.length>22?c.n.slice(0,20)+'…':c.n}</span><span class="br-list-val">${fmt(c.r)} <small style="color:rgba(255,255,255,0.3)">${s.tot?Math.round(c.r/s.tot*100):0}%</small></span></div>`).join('')}</div>
+        <div class="br-box">${s.filtC.slice(10,20).map((c,i)=>`<div class="br-list-row"><span><span class="br-list-num">${i+11}</span>${c.n.length>22?c.n.slice(0,20)+'…':c.n}</span><span class="br-list-val">${fmt(c.r)} <small style="color:rgba(255,255,255,0.3)">${s.tot?Math.round(c.r/s.tot*100):0}%</small></span></div>`).join('')}
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.4)">Top 1 representa ${s.top1pct}% da receita</div></div>
+      </div></div>`;
   }
   else if(s.type==='concentracao'){
-    const riskLevel=s.top1pct>15?'ALTO':s.top1pct>10?'MODERADO-ALTO':'MODERADO';
-    const riskColor=s.top1pct>15?'#ef4444':s.top1pct>10?'#f59e0b':'#2EC4B6';
+    const riskLevel=s.top5pct>45?'ALTO':s.top5pct>35?'MODERADO-ALTO':'MODERADO';
+    const riskColor=s.top5pct>45?'#ef4444':s.top5pct>35?'#f59e0b':'#2EC4B6';
     html=`<div class="br-slide">
       <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-pie"></i></div><div class="br-slide-title">Concentração de Receita</div></div>
-      <div class="br-insight" style="border-color:${riskColor};margin-bottom:14px">
-        <div class="br-insight-title" style="color:${riskColor}">Risco de Concentração: ${riskLevel}</div>
-        <div class="br-insight-body">Top 5 clientes concentram ${s.top5pct}% da receita. ${s.filtC[0]?.n||'Maior cliente'} responde por ${s.top1pct}% isoladamente. A perda de qualquer cliente do Top 5 causaria impacto significativo.</div>
+      <div class="br-two">
+        <div class="br-box"><div class="br-box-title">Índice de Concentração</div>
+          ${[{l:'Top 1 ('+((s.filtC[0]?.n||'').split(' ')[0])+')',v:s.top1pct+'%'},{l:'Top 3',v:s.top3pct+'%'},{l:'Top 5',v:s.top5pct+'%'},{l:'Top 10',v:s.top10pct+'%'},{l:'Top 20',v:s.top20pct+'%'}].map(r=>`<div class="br-list-row"><span>${r.l}</span><span class="br-list-val" style="color:${parseInt(r.v)>40?'#ef4444':parseInt(r.v)>25?'#f59e0b':'#2EC4B6'}">${r.v}</span></div>`).join('')}
+        </div>
+        <div class="br-box"><div class="br-box-title" style="color:${riskColor}">Risco: ${riskLevel}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;margin-top:8px">Top 5 concentra <strong style="color:#fff">${s.top5pct}%</strong>. ${(s.filtC[0]?.n||'').split(' ')[0]} representa <strong style="color:#fff">${s.top1pct}%</strong> isoladamente.</div>
+          <div style="margin-top:10px;font-size:11px;color:#2EC4B6">✓ ${s.filtC.length} clientes ativos mitiga concentração total.</div>
+        </div>
+      </div></div>`;
+  }
+  else if(s.type==='indicadores'){
+    const at=s.armTot+s.logTot||1;
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-settings-2"></i></div><div class="br-slide-title">Indicadores Comerciais Estratégicos</div></div>
+      <div class="br-kpis" style="grid-template-columns:repeat(4,1fr)">
+        <div class="br-kpi" style="border-color:#2EC4B6"><div class="br-kpi-val" style="color:#2EC4B6">${s.saudavel&&s.total?Math.round(s.saudavel/s.total*100):0}%</div><div class="br-kpi-lbl">Clientes Saudáveis</div><div class="br-kpi-sub">Score RFV ≥ 70</div></div>
+        <div class="br-kpi" style="border-color:#ef4444"><div class="br-kpi-val" style="color:#ef4444">${s.risco&&s.total?Math.round(s.risco/s.total*100):0}%</div><div class="br-kpi-lbl">Clientes em Risco</div><div class="br-kpi-sub">${s.risco} clientes score &lt;40</div></div>
+        <div class="br-kpi" style="border-color:${s.varPct>=0?'#2EC4B6':'#ef4444'}"><div class="br-kpi-val" style="color:${s.varPct>=0?'#2EC4B6':'#ef4444'}">${s.varPct!=null?(s.varPct>=0?'+':'')+s.varPct.toFixed(1)+'%':'—'}</div><div class="br-kpi-lbl">Crescimento</div><div class="br-kpi-sub">vs período anterior</div></div>
+        <div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${s.top20pct}%</div><div class="br-kpi-lbl">Top 20 Clientes</div><div class="br-kpi-sub">% da receita</div></div>
       </div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);padding:8px 0">Ponto positivo: distribuição entre ${s.filtC.length} clientes ativos mitiga parte do risco.</div>
-    </div>`;
+      <div class="br-kpis" style="grid-template-columns:repeat(4,1fr)">
+        <div class="br-kpi"><div class="br-kpi-val">${fmtM(s.ticketMedio)}</div><div class="br-kpi-lbl">Ticket Médio</div><div class="br-kpi-sub">por lançamento</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${s.top5pct}%</div><div class="br-kpi-lbl">Concentração Top 5</div><div class="br-kpi-sub">% do faturamento</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${fmtM(s.armTot)}</div><div class="br-kpi-lbl">ARM Nº 262</div><div class="br-kpi-sub">${Math.round(s.armTot/at*100)}% do total</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${fmtM(s.logTot)}</div><div class="br-kpi-lbl">LOG Santos</div><div class="br-kpi-sub">${Math.round(s.logTot/at*100)}% do total</div></div>
+      </div></div>`;
   }
   else if(s.type==='saude'){
     html=`<div class="br-slide">
-      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-heart-rate-monitor"></i></div><div class="br-slide-title">Saúde da Carteira de Clientes</div></div>
-      <div class="br-kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-heart-rate-monitor"></i></div><div class="br-slide-title">Saúde da Carteira — Score RFV</div></div>
+      <div class="br-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
         <div class="br-kpi" style="border-color:#2EC4B6"><div class="br-kpi-val">${s.saudavel}</div><div class="br-kpi-lbl">Saudáveis</div><div class="br-kpi-sub">Score ≥ 70</div></div>
-        <div class="br-kpi" style="border-color:#f59e0b"><div class="br-kpi-val">${s.atencao}</div><div class="br-kpi-lbl">Em Atenção</div><div class="br-kpi-sub">Score 40–69</div></div>
+        <div class="br-kpi" style="border-color:#f59e0b"><div class="br-kpi-val">${s.atencao}</div><div class="br-kpi-lbl">Atenção</div><div class="br-kpi-sub">Score 40–69</div></div>
         <div class="br-kpi" style="border-color:#ef4444"><div class="br-kpi-val">${s.risco}</div><div class="br-kpi-lbl">Em Risco</div><div class="br-kpi-sub">Score &lt; 40</div></div>
+        <div class="br-kpi"><div class="br-kpi-val">${s.total}</div><div class="br-kpi-lbl">Total analisado</div><div class="br-kpi-sub">clientes</div></div>
       </div>
       ${s.riscoList.length?`<div class="br-box"><div class="br-box-title" style="color:#ef4444">Clientes em Risco — ação imediata</div>${s.riscoList.map(c=>`<div class="br-list-row"><span>${c.cliente}</span><span class="br-list-val" style="color:#ef4444">Score ${c.score}</span></div>`).join('')}</div>`:''}
     </div>`;
   }
   else if(s.type==='forecast'){
     html=`<div class="br-slide">
-      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-line"></i></div><div class="br-slide-title">Projeção — Próximos 3 Meses</div></div>
-      <div class="br-kpis">${s.fc.map(f=>`<div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${fmtM(f.point)}</div><div class="br-kpi-lbl">${f.label}</div><div class="br-kpi-sub" style="color:rgba(255,255,255,0.4)">${fmtM(f.lo)} – ${fmtM(f.hi)}</div></div>`).join('')}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px">Modelo: sazonalidade histórica + tendência linear · ${s.mths.length} meses de base · banda ±15%</div>
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-chart-line"></i></div><div class="br-slide-title">Forecast — Próximos 3 Meses</div></div>
+      <div class="br-kpis">${s.fc.map(f=>`<div class="br-kpi" style="border-color:#1A4FA0"><div class="br-kpi-val">${fmtM(f.point)}</div><div class="br-kpi-lbl">${f.label}</div><div class="br-kpi-sub" style="color:rgba(255,255,255,0.35)">${fmtM(f.lo)} – ${fmtM(f.hi)}</div></div>`).join('')}</div>
+      <div class="br-box"><div class="br-box-title">Base do modelo</div><div style="font-size:11px;color:rgba(255,255,255,0.5)">${s.mths.length} meses históricos · sazonalidade + tendência linear · banda de confiança ±15%</div></div>
     </div>`;
   }
   else if(s.type==='insights'){
-    const var_=s.varPct!=null?(s.varPct>=0?`crescimento de +${s.varPct.toFixed(1)}%`:`queda de ${s.varPct.toFixed(1)}%`):'variação não disponível';
+    const at=s.armTot+s.logTot||1;
     const ins=[
-      {cor:'#2EC4B6',titulo:'Saúde da Carteira',lbl:'Análise',body:`Base com ${s.nClientes} clientes ativos. ${s.saudavel} saudáveis e ${s.risco} em risco. Ticket médio de ${fmtM(s.ticketMedio)} por operação.`},
-      {cor:'#f59e0b',titulo:'Qualidade do Crescimento',lbl:'Oportunidade',body:`Receita de ${fmtM(s.tot)} no período com ${var_}. Top 5 concentram ${s.top5pct}% — oportunidade de diversificação no mid-market.`},
-      {cor:s.top1pct>15?'#ef4444':'#2EC4B6',titulo:'Dependência e Risco',lbl:'Atenção',body:`${s.top1?.n||'Top cliente'} representa ${s.top1pct}% da receita. Concentração elevada exige programa de retenção ativo.`},
+      {cor:'#2EC4B6',titulo:'Saúde da Carteira',body:`Base de ${s.nClientes} clientes: ${s.saudavel} saudáveis, ${s.risco} em risco. Ticket médio de ${fmtM(s.ticketMedio)}. Score RFV indica estabilidade operacional.`},
+      {cor:s.varPct>=0?'#2EC4B6':'#ef4444',titulo:'Qualidade do Crescimento',body:`Receita de ${fmtM(s.tot)} com ${s.varPct!=null?(s.varPct>=0?'crescimento de +':' queda de ')+Math.abs(s.varPct).toFixed(1)+'%':'variação não disponível'}. ARM ${fmtM(s.armTot)} (${Math.round(s.armTot/at*100)}%) · LOG ${fmtM(s.logTot)} (${Math.round(s.logTot/at*100)}%).`},
+      {cor:s.top5pct>45?'#ef4444':'#f59e0b',titulo:'Dependência e Oportunidade',body:`Top 5 = ${s.top5pct}%. ${(s.filtC[0]?.n||'').split(' ')[0]} representa ${s.top1pct}% isoladamente. Expandir mid-market reduz exposição.`},
+      {cor:'#1A4FA0',titulo:'Ação Prioritária',body:`${s.risco} clientes com score crítico. Programa de retenção pode preservar receita em risco. Foco comercial nas próximas 2 semanas.`},
     ];
     html=`<div class="br-slide">
       <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-bulb"></i></div><div class="br-slide-title">Insights Estratégicos</div></div>
-      ${ins.map(i=>`<div class="br-insight" style="border-color:${i.cor}"><div class="br-insight-lbl" style="color:${i.cor}">${i.lbl}</div><div class="br-insight-title" style="color:#fff">${i.titulo}</div><div class="br-insight-body">${i.body}</div></div>`).join('')}
+      ${ins.map(i=>`<div class="br-insight" style="border-color:${i.cor}"><div class="br-insight-title" style="color:#fff">${i.titulo}</div><div class="br-insight-body">${i.body}</div></div>`).join('')}
+    </div>`;
+  }
+  else if(s.type==='positivos'){
+    const pts=[
+      {t:`Crescimento de Receita${s.varPct!=null?' (+'+Math.abs(s.varPct).toFixed(1)+'%)':''}`,ev:`Faturamento de ${fmtM(s.tot)} com ticket médio de ${fmtM(s.ticketMedio)} por operação.`,imp:'Maior rentabilidade por cliente fortalece margem de contribuição da operação logística.'},
+      {t:`${s.saudavel} Clientes com Score Saudável`,ev:`${s.nClientes} clientes ativos, ${s.saudavel} classificados como saudáveis no índice RFV. Base recorrente estável.`,imp:'Previsibilidade de receita e estabilidade operacional para o próximo período.'},
+      {t:`Top Cliente: ${(s.filtC[0]?.n||'').split(' ').slice(0,2).join(' ')} (${s.top1pct}%)`,ev:`${fmtM(s.filtC[0]?.r||0)} em faturamento. Relacionamento sólido com maior conta da carteira.`,imp:'Concentração gerenciada com relacionamento de longo prazo e operações de alto ticket.'},
+    ];
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-circle-check"></i></div><div class="br-slide-title">3 Principais Pontos Positivos</div></div>
+      ${pts.map((p,i)=>`<div class="br-insight" style="border-color:#2EC4B6">
+        <div class="br-insight-title" style="color:#2EC4B6">${i+1}. ${p.t}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px">Evidência</div>
+        <div class="br-insight-body">${p.ev}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px">Impacto</div>
+        <div class="br-insight-body">${p.imp}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+  else if(s.type==='melhorias'){
+    const pts=[
+      {t:`${s.risco} Clientes em Risco (Score RFV Crítico)`,p:`Score abaixo de 40 indica baixa recência, frequência ou valor. Alto risco de churn sem intervenção.`,a:'Programa de Customer Success: visitas de reativação em 2 semanas. Criar plano de retenção por cliente.'},
+      {t:`Concentração Elevada (Top 5 = ${s.top5pct}%)`,p:`Os 5 maiores clientes concentram ${s.top5pct}% da receita. Perda de 1 causa queda de 5–10% no faturamento.`,a:'Meta: reduzir Top 5 para < 35% em 12 meses. Prospectar 20+ clientes mid-market (R$100K–500K).'},
+      ...(s.varPct!=null&&s.varPct<0?[{t:`Queda de ${Math.abs(s.varPct).toFixed(1)}% vs Período Anterior`,p:'Redução de volume em clientes existentes ou saída de contas relevantes.',a:'Identificar clientes com redução de volume. Criar proposta de expansão para os 10 maiores.'}]:[{t:'Clientes Novos Abaixo do Potencial',p:'Pipeline de novos clientes pode ser acelerado com foco comercial nos segmentos de maior crescimento.',a:'Definir meta de novos clientes por segmento. Criar proposta de entrada competitiva para mid-market.'}]),
+    ].slice(0,3);
+    html=`<div class="br-slide">
+      <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-alert-triangle"></i></div><div class="br-slide-title">3 Pontos de Melhoria e Riscos</div></div>
+      ${pts.map((p,i)=>`<div class="br-insight" style="border-color:#ef4444">
+        <div class="br-insight-title" style="color:#ef4444">${i+1}. ${p.t}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px">Problema</div>
+        <div class="br-insight-body">${p.p}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px">Ação Recomendada</div>
+        <div class="br-insight-body">${p.a}</div>
+      </div>`).join('')}
     </div>`;
   }
   else if(s.type==='recomendacoes'){
     const recs=[
-      {titulo:'Programa Anti-Churn',body:`Monitorar clientes em risco (score < 40). Criar playbook de retenção para contas > R$100K.`},
-      {titulo:'Diversificação Mid-Market',body:`Top 5 = ${s.top5pct}%. Meta: reduzir para < 35% em 12 meses com 20+ novos clientes na faixa R$100K–500K.`},
-      {titulo:'Expansão de Carteira',body:`${s.risco||0} clientes em risco — acionar equipe comercial para visita de reativação nas próximas 2 semanas.`},
+      {t:'Programa Anti-Churn',b:`Monitorar ${s.risco} clientes em risco com score RFV crítico. Playbook de retenção para contas > R$100K. Meta: reduzir clientes em risco pela metade.`},
+      {t:'Diversificação do Mid-Market',b:`Focar aquisição na faixa R$100K–500K/período. Reduzir concentração Top 5 de ${s.top5pct}% para < 35% em 12 meses.`},
+      {t:'Expansão da Base Ativa',b:`Manter ritmo de prospecção com foco nos segmentos de maior crescimento histórico. Meta: 25 novos clientes relevantes em 6 meses.`},
+      {t:'Ativação Comercial Imediata',b:`Agendar visitas para ${s.risco} clientes em risco nas próximas 2 semanas. Criar proposta de expansão de serviços personalizada.`},
+      {t:'Proteção das Contas Estratégicas',b:`Revisão trimestral com Top 5 clientes. Plano de conta dedicado. Expandir serviços para aumentar stickiness e reduzir risco de saída.`},
     ];
-    if(s.varPct!=null&&s.varPct<0)recs.push({titulo:'Recuperação de Receita',body:`Queda de ${Math.abs(s.varPct).toFixed(1)}% vs período anterior. Identificar clientes que reduziram volume e criar oferta de expansão.'`});
     html=`<div class="br-slide">
       <div class="br-slide-hdr"><div class="br-slide-icon"><i class="ti ti-target"></i></div><div class="br-slide-title">Recomendações Estratégicas</div></div>
-      ${recs.map((r,i)=>`<div class="br-rec"><div class="br-rec-num">0${i+1}</div><div><div class="br-rec-title">${r.titulo}</div><div class="br-rec-body">${r.body}</div></div></div>`).join('')}
+      ${recs.map((r,i)=>`<div class="br-rec"><div class="br-rec-num">0${i+1}</div><div><div class="br-rec-title">${r.t}</div><div class="br-rec-body">${r.b}</div></div></div>`).join('')}
     </div>`;
   }
   else if(s.type==='encerramento'){
@@ -2403,21 +2442,18 @@ function renderBriefSlide(s){
       <div class="br-enc-big">Decida<br>com dados.</div>
       <div class="br-enc-sub">Álamo Analytics · Inteligência de Receita · Santos, SP</div>
       <div class="br-enc-meta">
-        <div class="br-enc-item"><div class="br-enc-val">${fmtM(s.tot)}</div><div class="br-enc-lbl">Receita do período</div></div>
+        <div class="br-enc-item"><div class="br-enc-val">${fmtM(s.tot)}</div><div class="br-enc-lbl">Faturamento</div></div>
         <div class="br-enc-item"><div class="br-enc-val">${s.nClientes}</div><div class="br-enc-lbl">Clientes ativos</div></div>
         ${s.fcData?`<div class="br-enc-item"><div class="br-enc-val">${fmtM(s.fcData[0].point)}</div><div class="br-enc-lbl">Projeção ${s.fcData[0].label}</div></div>`:''}
-        <div class="br-enc-item"><div class="br-enc-val">${s.periodo}</div><div class="br-enc-lbl">Período analisado</div></div>
+        <div class="br-enc-item"><div class="br-enc-val">${s.periodo}</div><div class="br-enc-lbl">Período</div></div>
       </div>
-      <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,0.2)">Gerado em ${s.dataGer} · Álamo Analytics</div>
+      <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,0.2)">Gerado em ${s.dataGer} · Álamo Analytics · Alamo Intermodal Logistics</div>
     </div>`;
   }
 
-  // Injeta no stage preservando os botões de nav
   const prev=stage.querySelector('.br-nav.prev').outerHTML;
   const next=stage.querySelector('.br-nav.next').outerHTML;
   stage.innerHTML=prev+html+next;
-
-  // Progress
   document.getElementById('br-progress').innerHTML=
     BR_SLIDES.map((_,i)=>`<div class="br-pbar"><div class="br-pfill" id="br-pf-${i}" style="width:${i<BR_IDX?100:0}%"></div></div>`).join('');
 }
