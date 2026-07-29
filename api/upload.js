@@ -18,10 +18,14 @@ const KV_URL   = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
 async function kvSet(key, value) {
+  // Upstash REST: POST /set/key com body sendo o valor como string
   const r = await fetch(`${KV_URL}/set/${encodeURIComponent(key)}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(value)
+    headers: { 
+      Authorization: `Bearer ${KV_TOKEN}`, 
+      'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify(value) // value já é string JSON
   });
   return r.json();
 }
@@ -31,7 +35,14 @@ async function kvGet(key) {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
   const d = await r.json();
-  return d.result;
+  // Upstash retorna { result: valor } onde valor pode ser string ou null
+  const raw = d.result;
+  if (!raw) return null;
+  // Se já é objeto/array retorna direto, se é string tenta parsear
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
+  return raw;
 }
 
 async function kvKeys(pattern) {
@@ -190,13 +201,18 @@ export default async function handler(req, res) {
 
     // Atualiza índice de meses disponíveis
     const idxRaw = await kvGet('index:meses');
-    const idx = idxRaw ? JSON.parse(idxRaw) : [];
+    let idx = [];
+    if (Array.isArray(idxRaw)) idx = idxRaw;
+    else if (typeof idxRaw === 'string') {
+      try { idx = JSON.parse(idxRaw); } catch { idx = []; }
+    }
+    if (!Array.isArray(idx)) idx = [];
     const entry = `${ano}-${mes}`;
     if (!idx.includes(entry)) {
       idx.push(entry);
       idx.sort();
-      await kvSet('index:meses', JSON.stringify(idx));
     }
+    await kvSet('index:meses', JSON.stringify(idx));
 
     return res.status(200).json({
       ok: true,

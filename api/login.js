@@ -14,7 +14,12 @@ async function kvGet(key) {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
   const d = await r.json();
-  return d.result;
+  const raw = d.result;
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
+  return raw;
 }
 
 async function hashPassword(password) {

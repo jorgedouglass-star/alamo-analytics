@@ -14,7 +14,12 @@ async function kvGet(key) {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
   const d = await r.json();
-  return d.result;
+  const raw = d.result;
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return raw; }
+  }
+  return raw;
 }
 
 function verifyToken(req) {
@@ -42,7 +47,7 @@ export default async function handler(req, res) {
   try {
     // Lê índice de meses disponíveis
     const idxRaw = await kvGet('index:meses');
-    const meses = idxRaw ? JSON.parse(idxRaw) : [];
+    const meses = Array.isArray(idxRaw) ? idxRaw : (idxRaw ? (typeof idxRaw === 'string' ? JSON.parse(idxRaw) : []) : []);
 
     if (!meses.length) {
       return res.status(200).json({ rows: [], meses: [] });
