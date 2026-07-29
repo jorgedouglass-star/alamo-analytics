@@ -58,7 +58,8 @@ export default async function handler(req, res) {
 
     if (!raw) return res.status(401).json({ error: 'Email ou senha incorretos' });
 
-    const user = JSON.parse(raw);
+    // kvGet já retorna objeto parseado
+    const user = typeof raw === 'object' ? raw : JSON.parse(raw);
 
     // Verifica senha
     const hash = await hashPassword(senha);

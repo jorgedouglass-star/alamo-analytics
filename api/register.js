@@ -86,7 +86,7 @@ export default async function handler(req, res) {
 
     // Adiciona ao índice de usuários
     const idxRaw = await kvGet('index:users');
-    const idx = idxRaw ? JSON.parse(idxRaw) : [];
+    const idx = Array.isArray(idxRaw) ? idxRaw : (idxRaw ? (typeof idxRaw === 'object' ? Object.values(idxRaw) : JSON.parse(idxRaw)) : []);
     if (!idx.includes(emailNorm)) {
       idx.push(emailNorm);
       await kvSet('index:users', JSON.stringify(idx));
