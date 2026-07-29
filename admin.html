@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álamo Analytics — Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f6f9;color:#1a2340;min-height:100vh}
+.hdr{background:#0D2040;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.hdr-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px}
+.hdr-right{display:flex;align-items:center;gap:12px}
+.hdr-user{font-size:12px;color:rgba(255,255,255,0.5)}
+.btn-logout{font-size:11px;padding:5px 12px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;background:none;color:rgba(255,255,255,0.6);cursor:pointer}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 20px}
+.section{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px;overflow:hidden}
+.sec-hdr{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.sec-title{font-size:14px;font-weight:700;color:#0D2040}
+.sec-body{padding:20px}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.b-pending{background:#fef9c3;color:#854d0e}
+.b-active{background:#dcfce7;color:#15803d}
+.b-blocked{background:#fee2e2;color:#991b1b}
+.user-row{display:grid;grid-template-columns:1fr 180px 80px 80px auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #f4f6f9;font-size:13px}
+.user-row:last-child{border-bottom:none}
+.user-row.header{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px}
+.btn-sm{font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:600;border:none;transition:opacity .15s}
+.btn-sm:hover{opacity:.8}
+.btn-aprovar{background:#dcfce7;color:#15803d}
+.btn-bloquear{background:#fee2e2;color:#991b1b}
+.btn-role{background:#e0e7ff;color:#3730a3}
+.mes-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f4f6f9;font-size:13px}
+.mes-row:last-child{border-bottom:none}
+.btn-del{background:#fee2e2;color:#991b1b}
+.empty{font-size:13px;color:#9ca3af;text-align:center;padding:20px 0}
+.kpi-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.kpi{background:#f8fafc;border-radius:10px;padding:14px 18px;flex:1;min-width:120px;border:1px solid #e5e7eb}
+.kpi-val{font-size:24px;font-weight:700;color:#0D2040}
+.kpi-lbl{font-size:11px;color:#9ca3af;margin-top:3px}
+select.role-sel{font-size:11px;padding:3px 6px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;color:#1a2340;cursor:pointer}
+.alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:16px;display:none}
+.alert.show{display:block}
+.alert-ok{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+.alert-err{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-title">⚙️ ÁLAMO ANALYTICS — Painel Admin</div>
+  <div class="hdr-right">
+    <span class="hdr-user" id="hdr-user"></span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="alert" id="alert"></div>
+
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi"><div class="kpi-val" id="k-total">—</div><div class="kpi-lbl">Total usuários</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-pending" style="color:#854d0e">—</div><div class="kpi-lbl">Aguardando aprovação</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-active" style="color:#15803d">—</div><div class="kpi-lbl">Ativos</div></div>
+    <div class="kpi"><div class="kpi-val" id="k-meses">—</div><div class="kpi-lbl">Meses importados</div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title">👥 Usuários</div>
+      <button class="btn-sm" style="background:#e0f2fe;color:#0369a1" onclick="loadUsers()">↻ Atualizar</button>
+    </div>
+    <div class="sec-body">
+      <div id="users-area"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr">
+      <div class="sec-title">📁 Meses Importados</div>
+      <button class="btn-sm" style="background:#e0f2fe;color:#0369a1" onclick="loadMeses()">↻ Atualizar</button>
+    </div>
+    <div class="sec-body">
+      <div id="meses-area"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token=localStorage.getItem('alamo_token');
+const role=localStorage.getItem('alamo_role');
+const nome=localStorage.getItem('alamo_nome');
+const email=localStorage.getItem('alamo_email');
+
+if(!token){window.location='/login.html';throw 0;}
+document.getElementById('hdr-user').textContent=nome||email||'Admin';
+
+function showAlert(msg,type='ok'){
+  const el=document.getElementById('alert');
+  el.textContent=msg;
+  el.className='alert show '+(type==='ok'?'alert-ok':'alert-err');
+  setTimeout(()=>el.classList.remove('show'),4000);
+}
+
+async function api(method,path,body){
+  const r=await fetch(path,{
+    method,
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:body?JSON.stringify(body):undefined
+  });
+  return r.json();
+}
+
+async function loadUsers(){
+  const data=await api('GET','/api/admin?action=users');
+  const users=data.users||[];
+  const pending=users.filter(u=>u.status==='pending').length;
+  const active=users.filter(u=>u.status==='active').length;
+  document.getElementById('k-total').textContent=users.length;
+  document.getElementById('k-pending').textContent=pending;
+  document.getElementById('k-active').textContent=active;
+
+  if(!users.length){
+    document.getElementById('users-area').innerHTML='<div class="empty">Nenhum usuário cadastrado ainda.</div>';
+    return;
+  }
+
+  const sorted=[
+    ...users.filter(u=>u.status==='pending'),
+    ...users.filter(u=>u.status==='active'),
+    ...users.filter(u=>u.status==='blocked'),
+  ];
+
+  document.getElementById('users-area').innerHTML=`
+    <div class="user-row header">
+      <div>Nome / Email</div><div>Cadastro</div><div>Role</div><div>Status</div><div>Ações</div>
+    </div>`+
+    sorted.map(u=>`
+    <div class="user-row">
+      <div><strong>${u.nome}</strong><br><span style="font-size:11px;color:#9ca3af">${u.email}</span></div>
+      <div style="font-size:11px;color:#9ca3af">${u.createdAt?new Date(u.createdAt).toLocaleDateString('pt-BR'):'-'}</div>
+      <div>
+        <select class="role-sel" onchange="changeRole('${u.email}',this.value)">
+          <option ${u.role==='viewer'?'selected':''} value="viewer">Viewer</option>
+          <option ${u.role==='uploader'?'selected':''} value="uploader">Uploader</option>
+          <option ${u.role==='admin'?'selected':''} value="admin">Admin</option>
+        </select>
+      </div>
+      <div><span class="badge b-${u.status==='active'?'active':u.status==='blocked'?'blocked':'pending'}">${u.status==='active'?'Ativo':u.status==='blocked'?'Bloqueado':'Pendente'}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${u.status!=='active'?`<button class="btn-sm btn-aprovar" onclick="approveUser('${u.email}')">Aprovar</button>`:''}
+        ${u.status!=='blocked'?`<button class="btn-sm btn-bloquear" onclick="blockUser('${u.email}')">Bloquear</button>`:''}
+        ${u.status==='blocked'?`<button class="btn-sm btn-aprovar" onclick="approveUser('${u.email}')">Reativar</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+async function loadMeses(){
+  const data=await api('GET','/api/admin?action=meses');
+  const meses=data.meses||[];
+  document.getElementById('k-meses').textContent=meses.length;
+
+  if(!meses.length){
+    document.getElementById('meses-area').innerHTML='<div class="empty">Nenhum arquivo importado ainda.</div>';
+    return;
+  }
+
+  document.getElementById('meses-area').innerHTML=meses.map(m=>{
+    const [ano,mes]=m.split('-');
+    return`<div class="mes-row">
+      <div><strong>${mes}/${ano}</strong> <span style="font-size:11px;color:#9ca3af">— dados importados</span></div>
+      <button class="btn-sm btn-del" onclick="deleteMes('${m}')">🗑 Remover</button>
+    </div>`;
+  }).join('');
+}
+
+async function approveUser(email){
+  const r=await api('POST','/api/admin',{action:'approve',email});
+  if(r.ok){showAlert('Usuário aprovado com sucesso!');loadUsers();}
+  else showAlert(r.error||'Erro','err');
+}
+
+async function blockUser(email){
+  if(!confirm(`Bloquear ${email}?`))return;
+  const r=await api('POST','/api/admin',{action:'block',email});
+  if(r.ok){showAlert('Usuário bloqueado.');loadUsers();}
+  else showAlert(r.error||'Erro','err');
+}
+
+async function changeRole(email,role){
+  const r=await api('POST','/api/admin',{action:'role',email,role});
+  if(r.ok)showAlert('Role atualizado.');
+  else showAlert(r.error||'Erro','err');
+}
+
+async function deleteMes(mes){
+  if(!confirm(`Remover dados de ${mes}? Esta ação não pode ser desfeita.`))return;
+  const r=await api('POST','/api/admin',{action:'deleteMes',mes});
+  if(r.ok){showAlert('Dados removidos.');loadMeses();}
+  else showAlert(r.error||'Erro','err');
+}
+
+function logout(){
+  localStorage.clear();
+  document.cookie='alamo_token=;path=/;max-age=0';
+  window.location='/login.html?logout=1';
+}
+
+// Carrega dados iniciais
+loadUsers();
+loadMeses();
+</script>
+</body>
+</html>

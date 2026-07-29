@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álamo Analytics — Solicitar Acesso</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0D2040;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,0.4)}
+.logo-wrap{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.logo-img-container{background:#0D2040;border-radius:10px;padding:5px 8px;display:flex;align-items:center}
+.logo-img{height:30px;display:block}
+.logo-text{font-size:17px;font-weight:700;color:#0D2040}
+.logo-sub{font-size:11px;color:#6b7a99;margin-top:2px}
+h1{font-size:20px;font-weight:700;color:#0D2040;margin-bottom:6px}
+.subtitle{font-size:13px;color:#6b7a99;margin-bottom:24px;line-height:1.5}
+label{display:block;font-size:12px;font-weight:600;color:#1a2340;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.field{margin-bottom:14px}
+input{width:100%;padding:11px 14px;border:1.5px solid #e2e6ef;border-radius:10px;font-size:14px;color:#1a2340;background:#f8fafc;transition:border-color .15s;outline:none;font-family:inherit}
+input:focus{border-color:#E8751A;background:#fff}
+.btn{width:100%;padding:13px;background:#E8751A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.5;cursor:default}
+.erro{display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;color:#991b1b;margin-bottom:14px}
+.erro.show{display:block}
+.ok{display:none;background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:14px;font-size:13px;color:#15803d;margin-bottom:14px;text-align:center;line-height:1.6}
+.ok.show{display:block}
+.footer{margin-top:20px;text-align:center;font-size:12px;color:#9ca3af}
+.footer a{color:#E8751A;text-decoration:none;font-weight:600}
+.notice{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 14px;font-size:12px;color:#0369a1;margin-bottom:20px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-wrap">
+    <div class="logo-img-container">
+      <img src="logo-alamo.png" alt="Álamo" class="logo-img" onerror="this.parentElement.innerHTML='<span style=\'font-weight:800;font-size:15px;color:#fff\'>AL</span>'">
+    </div>
+    <div>
+      <div class="logo-text">ÁLAMO ANALYTICS</div>
+      <div class="logo-sub">Inteligência de Receita · Santos, SP</div>
+    </div>
+  </div>
+
+  <h1>Solicitar acesso</h1>
+  <p class="subtitle">Preencha seus dados. O administrador revisará sua solicitação e liberará o acesso.</p>
+
+  <div class="notice">
+    ⏳ Após o cadastro, aguarde a aprovação do administrador antes de tentar entrar.
+  </div>
+
+  <div class="erro" id="erro"></div>
+
+  <div class="ok" id="ok">
+    ✅ <strong>Cadastro realizado com sucesso!</strong><br>
+    Você receberá acesso assim que o administrador aprovar sua conta.<br><br>
+    <a href="login.html" style="color:#15803d;font-weight:700">← Voltar para o login</a>
+  </div>
+
+  <div id="form-area">
+    <div class="field">
+      <label for="nome">Nome completo</label>
+      <input type="text" id="nome" placeholder="Seu nome" autocomplete="name">
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label for="senha2">Confirmar senha</label>
+      <input type="password" id="senha2" placeholder="Repita a senha" autocomplete="new-password">
+    </div>
+    <button class="btn" id="btn" onclick="doRegister()">Solicitar acesso</button>
+  </div>
+
+  <div class="footer" style="margin-top:16px">
+    Já tem acesso? <a href="login.html">Entrar</a>
+  </div>
+</div>
+
+<script>
+async function doRegister(){
+  const nome=document.getElementById('nome').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const senha=document.getElementById('senha').value;
+  const senha2=document.getElementById('senha2').value;
+  const btn=document.getElementById('btn');
+  const erroEl=document.getElementById('erro');
+
+  erroEl.classList.remove('show');
+
+  if(!nome||!email||!senha||!senha2){erroEl.textContent='Preencha todos os campos.';erroEl.classList.add('show');return;}
+  if(senha!==senha2){erroEl.textContent='As senhas não coincidem.';erroEl.classList.add('show');return;}
+  if(senha.length<6){erroEl.textContent='Senha deve ter ao menos 6 caracteres.';erroEl.classList.add('show');return;}
+
+  btn.disabled=true;btn.textContent='Enviando...';
+
+  try{
+    const r=await fetch('/api/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({nome,email,senha})
+    });
+    const data=await r.json();
+
+    if(!r.ok){
+      erroEl.textContent=data.error||'Erro ao cadastrar.';
+      erroEl.classList.add('show');
+      btn.disabled=false;btn.textContent='Solicitar acesso';
+      return;
+    }
+
+    document.getElementById('form-area').style.display='none';
+    document.getElementById('ok').classList.add('show');
+  }catch(err){
+    erroEl.textContent='Erro de conexão. Tente novamente.';
+    erroEl.classList.add('show');
+    btn.disabled=false;btn.textContent='Solicitar acesso';
+  }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doRegister();});
+</script>
+</body>
+</html>
