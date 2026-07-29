@@ -75,7 +75,7 @@ export default async function handler(req, res) {
 
       if (action === 'users') {
         const idxRaw = await kvGet('index:users');
-        const emails = idxRaw ? JSON.parse(idxRaw) : [];
+        const emails = Array.isArray(idxRaw) ? idxRaw : (idxRaw ? (typeof idxRaw === 'string' ? JSON.parse(idxRaw) : []) : []);
         const users = await Promise.all(emails.map(async email => {
           const raw = await kvGet(`user:${email}`);
           if (!raw) return null;
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
 
       if (action === 'meses') {
         const idxRaw = await kvGet('index:meses');
-        const meses = idxRaw ? JSON.parse(idxRaw) : [];
+        const meses = Array.isArray(idxRaw) ? idxRaw : (idxRaw ? (typeof idxRaw === 'string' ? JSON.parse(idxRaw) : []) : []);
         return res.status(200).json({ meses });
       }
 
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
         const emailNorm = email?.toLowerCase();
         const raw = await kvGet(`user:${emailNorm}`);
         if (!raw) return res.status(404).json({ error: 'Usuário não encontrado' });
-        const user = JSON.parse(raw);
+        const user = typeof raw === 'object' ? raw : JSON.parse(raw);
         user.status = action === 'approve' ? 'active' : action === 'block' ? 'blocked' : 'active';
         await kvSet(`user:${emailNorm}`, JSON.stringify(user));
         return res.status(200).json({ ok: true, status: user.status });
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
         if (!validRoles.includes(role)) return res.status(400).json({ error: 'Role inválido' });
         const raw = await kvGet(`user:${emailNorm}`);
         if (!raw) return res.status(404).json({ error: 'Usuário não encontrado' });
-        const user = JSON.parse(raw);
+        const user = typeof raw === 'object' ? raw : JSON.parse(raw);
         user.role = role;
         await kvSet(`user:${emailNorm}`, JSON.stringify(user));
         return res.status(200).json({ ok: true, role });
@@ -124,7 +124,7 @@ export default async function handler(req, res) {
         const [ano, m] = mes.split('-');
         await kvDel(`dados:${ano}:${m}`);
         const idxRaw = await kvGet('index:meses');
-        const idx = idxRaw ? JSON.parse(idxRaw) : [];
+        const idx = Array.isArray(idxRaw) ? idxRaw : (idxRaw ? (typeof idxRaw === 'string' ? JSON.parse(idxRaw) : []) : []);
         const newIdx = idx.filter(x => x !== mes);
         await kvSet('index:meses', JSON.stringify(newIdx));
         return res.status(200).json({ ok: true });
