@@ -22,8 +22,10 @@ function verifyToken(req) {
   const token = auth.replace('Bearer ', '');
   if (!token) return null;
   try {
-    const payload = token.split('.')[1];
-    const data = JSON.parse(Buffer.from(payload, 'base64').toString());
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const pad = (s) => s + '='.repeat((4 - s.length % 4) % 4);
+    const data = JSON.parse(Buffer.from(pad(parts[1]), 'base64').toString('utf-8'));
     if (data.exp < Date.now() / 1000) return null;
     return data;
   } catch { return null; }

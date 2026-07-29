@@ -26,14 +26,14 @@ async function hashPassword(password) {
 
 // JWT simples sem biblioteca
 function createJWT(payload) {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const body = btoa(JSON.stringify({
+  const b64 = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64').replace(/=/g,'');
+  const header = b64({ alg: 'HS256', typ: 'JWT' });
+  const body = b64({
     ...payload,
     iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 dias
-  }));
-  // Signature simples (HMAC-like via concatenação com secret — adequado para uso interno)
-  const sig = btoa(JWT_SECRET + header + body).replace(/=/g, '');
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+  });
+  const sig = Buffer.from(JWT_SECRET + header + body).toString('base64').replace(/=/g,'');
   return `${header}.${body}.${sig}`;
 }
 
