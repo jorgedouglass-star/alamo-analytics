@@ -134,7 +134,19 @@ function processRows(rows) {
   const processed = [];
   for (const row of rows) {
     const vals = Object.values(row);
-    const valStr = (vals[cVal] || '').toString().replace(/[R$\s.]/g, '').replace(',', '.');
+    // Detecta formato: se tem ponto E vírgula = BR (1.234,56), senão = padrão (1234.56)
+    const rawVal = (vals[cVal] || '').toString().trim().replace(/[R$\s]/g, '');
+    let valStr;
+    if (rawVal.includes(',') && rawVal.includes('.')) {
+      // Formato BR: 1.234,56 → remove ponto de milhar, troca vírgula por ponto
+      valStr = rawVal.replace(/\./g, '').replace(',', '.');
+    } else if (rawVal.includes(',')) {
+      // Só vírgula: 1234,56 → troca por ponto
+      valStr = rawVal.replace(',', '.');
+    } else {
+      // Já em formato padrão: 1234.56
+      valStr = rawVal;
+    }
     const valor = parseFloat(valStr);
     if (!valor || valor <= 0) continue;
     const dt = parseDate(vals[cDate]);
