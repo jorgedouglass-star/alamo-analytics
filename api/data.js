@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Endpoint de Dados
+//  ALAMO ANALYTICS — Endpoint de Dados
 //  Arquivo: api/data.js
 //
 //  Retorna todos os dados consolidados do Upstash Redis

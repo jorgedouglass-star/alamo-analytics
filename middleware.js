@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Middleware de Autenticação (JWT)
+//  ALAMO ANALYTICS — Middleware de Autenticação (JWT)
 //  Arquivo: middleware.js
 //
 //  Protege todas as rotas exceto login, register e api pública

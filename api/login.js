@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Login
+//  ALAMO ANALYTICS — Login
 //  Arquivo: api/login.js
 //
 //  Valida email + senha, retorna JWT se usuário ativo

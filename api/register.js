@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Cadastro de Usuário
+//  ALAMO ANALYTICS — Cadastro de Usuário
 //  Arquivo: api/register.js
 //
 //  Cria usuário com status "pending"

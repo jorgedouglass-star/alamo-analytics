@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Painel Admin
+//  ALAMO ANALYTICS — Painel Admin
 //  Arquivo: api/admin.js
 //
 //  Endpoints:

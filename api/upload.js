@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Upload de Arquivo de Dados
+//  ALAMO ANALYTICS — Upload de Arquivo de Dados
 //  Arquivo: api/upload.js
 //
 //  Recebe um arquivo CSV ou XLS no formato mm_aaaa

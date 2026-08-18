@@ -1,5 +1,5 @@
 // ============================================================
-//  ÁLAMO ANALYTICS — Proxy de IA (Vercel Serverless Function)
+//  ALAMO ANALYTICS — Proxy de IA (Vercel Serverless Function)
 //  Arquivo: api/chat.js
 //
 //  Configure no painel do Vercel em:
